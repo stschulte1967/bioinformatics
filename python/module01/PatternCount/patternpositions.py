@@ -9,11 +9,12 @@ def PatternPositions(text, pattern):
     return positions
 
 if __name__ == '__main__':
-    with open('../../../data/PatternPositions/Vibrio_cholerae_set.txt') as f:
-        pattern = f.readline().strip()
-        text = f.readline().strip()
-        print(len(pattern))
-        print(len(text))
-        for entry in PatternPositions(text, pattern):
-            print(entry, end=' ')
-        print()
+    #with open('../../../data/PatternPositions/Vibrio_cholerae_set.txt') as f:
+    #    pattern = f.readline().strip()
+    #    text = f.readline().strip()
+    #    print(len(pattern))
+    #    print(len(text))
+    #    for entry in PatternPositions(text, pattern):
+    #        print(entry, end=' ')
+    #    print()
+    print(PatternPositions("ATGACTTCGCTGTTACGCGC", "CGC"))
