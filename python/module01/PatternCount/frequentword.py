@@ -20,10 +20,10 @@ def BetterFrequentWords(text, k):
     return frequentPatterns
 
 if __name__ == '__main__':
-    print("PatternCountTest")
-    with open('../../../data/FrequentWords/dataset_30272_13.txt') as f:
-        text = f.readline().strip()
-        k = int(f.readline().strip())
-        for pattern in BetterFrequentWords(text, k):
-            print(pattern, end=' ')
-        print()
+    #with open('../../../data/FrequentWords/dataset_30272_13.txt') as f:
+    #    text = f.readline().strip()
+    #    k = int(f.readline().strip())
+    #    for pattern in BetterFrequentWords(text, k):
+    #        print(pattern, end=' ')
+    #    print()
+    print(BetterFrequentWords("CGGAGGACTCTAGGTAACGCTTATCAGGTCCATAGGACATTCA", 3))

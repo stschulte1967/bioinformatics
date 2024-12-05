@@ -10,8 +10,9 @@ def PatternCount(text, pattern):
     return count
 
 if __name__ == '__main__':
-    print("PatternCountTest")
-    with open('../../../data/PatternCount/1A/inputs/dataset_30272_6.txt') as f:
-        text = f.readline().strip()
-        pattern = f.readline().strip()
-        print(PatternCount(text, pattern))
+    #print("PatternCountTest")
+    #with open('../../../data/PatternCount/1A/inputs/dataset_30272_6.txt') as f:
+    #    text = f.readline().strip()
+    #    pattern = f.readline().strip()
+    #    print(PatternCount(text, pattern))
+    print(PatternCount("ACTGTACGATGATGTGTGTCAAAG", "TGT"))
