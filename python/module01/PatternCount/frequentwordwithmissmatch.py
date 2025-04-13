@@ -48,4 +48,3 @@ if __name__ == '__main__':
         for pattern in FrequentWordsWithMismatch(text, k, d):
             print(pattern, end=' ')
         print()
-    #print(BetterFrequentWords("CGGAGGACTCTAGGTAACGCTTATCAGGTCCATAGGACATTCA", 3))
