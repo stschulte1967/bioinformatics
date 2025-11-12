@@ -1,14 +1,18 @@
 module Lib
-    ( patternCount
+    ( patternCount,
+      frequentWords
     ) where
 
 patternCount :: String -> String -> Integer
 patternCount [] _ = 0
-patternCount text pattern = 
-    if take patternLength text == pattern
+patternCount (x:xs) pat = 
+    if take patternLength (x:xs) == pat
     then
-        1 + patternCount (tail text) pattern
-    else patternCount (tail text) pattern
+        1 + patternCount xs pat
+    else patternCount xs pat
     where
-        patternLength = length pattern  
+        patternLength = length pat  
+
+frequentWords :: String -> Int -> [String]
+frequentWords text k = [""]
 
