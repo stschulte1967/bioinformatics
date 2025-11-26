@@ -1,11 +1,13 @@
 module Lib
     ( patternCount,
       frequentWords,
-      reverseComplement
+      reverseComplement,
+      patternPositions,
+      findClumbs
     ) where
 
 import Data.Ord (comparing, Down (Down))
-import Data.List (tails, sort, sortBy)
+import Data.List (tails, sort, sortBy, isPrefixOf, findIndices)
 
 patternCount :: String -> String -> Integer
 patternCount [] _ = 0
@@ -39,6 +41,9 @@ countRun xs = (1 + length vu, w) : countRun vv
 findMax :: [(Int, String)] -> [String]
 findMax xs =map snd $ takeWhile (\x -> fst x == fst (head xs)) xs
 
+findBigger :: Int -> [(Int, String)] -> [String]
+findBigger n xs =map snd $ takeWhile (\x -> fst x >= n) xs
+
 reverseComplement :: String -> String
 reverseComplement  = reverse . map convert
     where
@@ -47,4 +52,10 @@ reverseComplement  = reverse . map convert
             'T' -> 'A'
             'C' -> 'G'
             'G' -> 'C'
-            _ -> 'X' 
+            _ -> 'X'
+
+patternPositions :: String -> String -> [Int]
+patternPositions text pat = findIndices (isPrefixOf pat) (tails text)
+
+findClumbs :: String -> Int -> Int -> Int -> [String]
+findClumbs text k _ t = findBigger t . sortRun . countRun . sortKmers . kmers k $ text
