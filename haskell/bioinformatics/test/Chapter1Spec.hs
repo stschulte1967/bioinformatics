@@ -2,6 +2,7 @@ module Chapter1Spec where
 
 import Test.Hspec
 import Lib
+import Data.List
 
 spec :: Spec
 spec = do
@@ -16,10 +17,22 @@ spec = do
     it "test 8" $ do testPatternCount "../../data/PatternCount/1A/inputs/input_8.txt" 294
 
   describe "FrequentWords" $ do
-    it "test 1" $ do testFrequentWords "../../data/PatternCount/1A/inputs/input_1.txt" 2
+    it "test 1" $ do testFrequentWords "../../data/FrequentWords/testset.txt" ["ACGT"]
 
-sameElements xs ys = sort xs == sort ys 
+  describe "MinimumSkew" $ do
+    it "test 1" $ do testMinimumSkew "../../data/Skew/testset.txt" [11,24]
+    it "test 2" $ do testMinimumSkew "../../data/Skew/quiz.txt" [14]
+    it "test 3" $ do testMinimumSkew "../../data/Skew/dataset_30277_10.txt" [125, 130, 132, 133, 134, 136, 157, 158]
+
+  describe "HammingDistance" $ do
+    it "test 1" $ do testHammingDistance "../../data/HammingDistance/testset.txt" 3
+    it "test 2" $ do testHammingDistance "../../data/HammingDistance/quiz.txt" 43
+    it "test 3" $ do testHammingDistance "../../data/HammingDistance/dataset_30278_3.txt" 783
+
+
 sameElements :: (Ord a) => [a] -> [a] -> Bool
+sameElements xs ys = sort xs == sort ys 
+
 
 testPatternCount filename solution = do    
     content <- readFile filename
@@ -27,6 +40,30 @@ testPatternCount filename solution = do
         text = if null ls then "" else head ls
         pat  = if length ls > 1 then ls !! 1 else ""
     patternCount text pat `shouldBe` solution
+
+testFrequentWords filename solution = do
+    content <- readFile filename
+    let ls = lines content
+        text = if null ls then "" else head ls
+        len  = if length ls > 1 then read $ head ls else 0
+        result = frequentWords len text
+    print $ unwords result
+    sameElements result solution `shouldBe` True 
+
+testMinimumSkew filename solution = do
+    text <- readFile filename
+    let result = minimumSkew text
+    print $ unwords (map show result)
+    sameElements result solution `shouldBe` True
+
+testHammingDistance filename solution = do
+    content <- readFile filename
+    let ls = lines content
+        text1 = if null ls then "" else head ls
+        text2  = if length ls > 1 then head (tail ls) else ""
+        result = hammingDistance text1 text2
+    print result
+    result `shouldBe` solution
 
 --do
 --    content <- readFile filename

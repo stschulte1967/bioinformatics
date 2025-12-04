@@ -3,7 +3,10 @@ module Lib
       frequentWords,
       reverseComplement,
       patternPositions,
-      findClumbs
+      findClumbs,
+      skew,
+      minimumSkew,
+      hammingDistance
     ) where
 
 import Data.Ord (comparing, Down (Down))
@@ -11,6 +14,7 @@ import Data.List (tails, sort, sortBy, isPrefixOf, findIndices, group, foldl')
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
 import Data.Array (Array, listArray, (!))
+import Data.Int (Int)
 
 patternCount :: String -> String -> Int
 patternCount _ [] = 0
@@ -83,3 +87,18 @@ findClumbs k l t text
                 in (m'', acc')
             (_, accFinal) = foldl' (flip step) (counts0, acc0) [1 .. (n - l)]
         in sort $ HS.toList accFinal
+
+positionsOfMin :: (Ord a) => [a] -> [Int]
+positionsOfMin [] = []  -- Handle empty list
+positionsOfMin xs =
+    let minVal = minimum xs
+    in [i | (i, x) <- zip [0..] xs, x == minVal]
+
+skew :: String -> [Int]
+skew text = scanl (+) 0 (map (\c -> if c == 'C' then -1 else if c == 'G' then 1 else 0) text)
+
+minimumSkew :: String -> [Int]
+minimumSkew text = positionsOfMin $ skew text
+
+hammingDistance :: String -> String -> Int
+hammingDistance text1 text2 = sum ( zipWith (\x y -> if x == y then 0 else 1) text1 text2 )
