@@ -6,7 +6,8 @@ module Lib
       findClumbs,
       skew,
       minimumSkew,
-      hammingDistance
+      hammingDistance,
+      patternPositionsUsingHamming
     ) where
 
 import Data.Ord (comparing, Down (Down))
@@ -100,5 +101,17 @@ skew text = scanl (+) 0 (map (\c -> if c == 'C' then -1 else if c == 'G' then 1 
 minimumSkew :: String -> [Int]
 minimumSkew text = positionsOfMin $ skew text
 
+-- We say that position i in k-mers p1 … pk and q1 … qk is a mismatch if pi ≠ qi. 
+-- For example, CGAAT and CGGAC have two mismatches. The number of mismatches between 
+-- strings p and q is called the Hamming distance between these strings and is denoted 
+-- HammingDistance(p, q).
+
 hammingDistance :: String -> String -> Int
 hammingDistance text1 text2 = sum ( zipWith (\x y -> if x == y then 0 else 1) text1 text2 )
+
+patternPositionsUsingHamming :: String -> String -> Int -> [Int]
+patternPositionsUsingHamming pattern text d = filter (< (length text - lenPattern + 1)) (findIndices hammingDistanceLessThanD (tails text))
+    where
+        lenPattern = length pattern 
+        hammingDistanceLessThanD t = hammingDistance pattern (take lenPattern t) <= d
+ 

@@ -29,6 +29,9 @@ spec = do
     it "test 2" $ do testHammingDistance "../../data/HammingDistance/quiz.txt" 43
     it "test 3" $ do testHammingDistance "../../data/HammingDistance/dataset_30278_3.txt" 783
 
+  describe "patternPosition using Hamming distance" $ do
+    it "test 1" $ do testPatternPositionsUsingHamming "../../data/PatternPositionsHamming/testset.txt" [6, 7, 26, 27]
+    it "test 2" $ do testPatternPositionsUsingHamming "../../data/PatternPositionsHamming/dataset_30278_4.txt" [6, 7, 26, 27]  
 
 sameElements :: (Ord a) => [a] -> [a] -> Bool
 sameElements xs ys = sort xs == sort ys 
@@ -65,6 +68,16 @@ testHammingDistance filename solution = do
     print result
     result `shouldBe` solution
 
+testPatternPositionsUsingHamming filename solution = do    
+    content <- readFile filename
+    let ls = lines content
+        pat  = if null ls then "" else head ls
+        text  = if length ls > 1 then ls !! 1 else ""
+        d = if length ls > 2 then read (ls !! 2) else 0
+        result = patternPositionsUsingHamming pat text d
+    print $ length text
+    print $ unwords . map show $ result
+    result `shouldBe` solution
 --do
 --    content <- readFile filename
 --    let ls = lines content
