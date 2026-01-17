@@ -83,3 +83,44 @@ pub fn find_clumps(text: &str, k: usize, l: usize, t: usize) -> HashSet<String> 
     patterns
 }
 
+pub fn minimum_skew(text: &str) -> Vec<usize> {
+    let mut skew = 0;
+    let mut min_skew = 0;
+    let mut min_skew_indexes: Vec<usize> = vec![0];
+    for (i, c) in text.chars().enumerate() {
+        match c {
+            'C' => skew -= 1,
+            'G' => skew += 1,
+            _ => skew += 0,
+        }
+
+        if skew == min_skew {
+            min_skew_indexes.push(i+1);
+        }
+
+        if skew < min_skew {
+            min_skew_indexes.clear();
+            min_skew_indexes.push(i+1);
+            min_skew = skew;
+        }
+    }
+    min_skew_indexes
+}
+
+pub fn hamming_distance(pattern1: &str, pattern2: &str) -> usize {
+    if pattern1 == pattern2 {
+        return 0;
+    }
+
+    let b1 = pattern1.as_bytes();
+    let b2 = pattern2.as_bytes();
+    let len = b1.len().min(b2.len());
+
+    let mut distance = 0usize;
+    for i in 0..len {
+        distance += (b1[i] != b2[i]) as usize;
+    }
+
+    distance + (b1.len().max(b2.len()) - len)
+}
+
