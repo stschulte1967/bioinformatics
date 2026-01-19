@@ -124,3 +124,52 @@ pub fn hamming_distance(pattern1: &str, pattern2: &str) -> usize {
     distance + (b1.len().max(b2.len()) - len)
 }
 
+pub fn approximate_pattern_positions(text: &str, pattern: &str, distance: usize) -> Vec<usize> {
+    let mut results = Vec::new();
+    if pattern.is_empty() {
+        return results;
+    }
+    let pattern_length = pattern.len();
+    for i in 0..=text.len() - pattern_length {
+        if hamming_distance(&text[i..i + pattern_length], &pattern) <= distance {
+            results.push(i);
+        }
+    }
+    results
+}
+
+pub fn approximate_pattern_count(text: &str, pattern: &str, distance: usize) -> usize {
+    let mut result = 0;
+    if pattern.is_empty() {
+        return result;
+    }
+    let pattern_length = pattern.len();
+    for i in 0..=text.len() - pattern_length {
+        if hamming_distance(&text[i..i + pattern_length], &pattern) <= distance {
+            result += 1;
+        }
+    }
+    result
+}
+
+pub fn neighbors(pattern: &str, d: usize) -> Vec<String> {
+    if d == 0 {
+        return vec![pattern.to_string()];
+    }
+    if pattern.len() == 1 {
+        return vec!["A".to_string(), "C".to_string(), "G".to_string(), "T".to_string()];
+    }
+    let mut neighborhood = HashSet::new();
+    let suffix_neighbors = neighbors(pattern.get(1..).unwrap(), d);
+    for text in suffix_neighbors.iter() {
+        if hamming_distance(pattern.get(1..).unwrap(), text) < d {
+            for c in "ACGT".chars() {
+                neighborhood.insert(c.to_string() + text);
+            }
+        } else {
+            neighborhood.insert(pattern.chars().next().unwrap().to_string() + text);
+        }
+    }
+    neighborhood.into_iter().collect()
+}
+
