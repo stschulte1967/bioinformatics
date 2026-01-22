@@ -239,5 +239,11 @@ pub fn frequent_words_with_mismatches_and_complement(text: &str, k: usize, d: us
     patterns
 }
 
-
+pub fn motif_enumeration(dna: &str, k: usize, d: usize) -> Vec<String> {
+    let patterns<String> = HashSet::new();
+    let text = dna.split_whitespace();
+    for i in 0..=text[0].len() - k {
+        
+    }
+}
 
