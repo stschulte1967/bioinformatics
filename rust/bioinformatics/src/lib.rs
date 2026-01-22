@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::collections::HashMap;
 
 pub fn pattern_count(text: &str, pattern: &str) -> usize {
     if pattern.is_empty() || text.len() < pattern.len() {
@@ -16,7 +17,7 @@ pub fn frequent_words(text: &str, k: usize) -> Vec<String> {
         return Vec::new();
     }
 
-    let mut count_map = std::collections::HashMap::new();
+    let mut count_map = HashMap::new();
 
     for i in 0..=text.len() - k {
         let pattern = &text[i..i + k];
@@ -67,7 +68,7 @@ pub fn find_clumps(text: &str, k: usize, l: usize, t: usize) -> HashSet<String> 
     for i in 0..(n-l) {
         let window = &text[i..i + l];
         
-        let mut freq_map = std::collections::HashMap::new();
+        let mut freq_map = HashMap::new();
 
         for i in 0..=l - k {
             let pattern = &window[i..i + k];
@@ -172,4 +173,71 @@ pub fn neighbors(pattern: &str, d: usize) -> Vec<String> {
     }
     neighborhood.into_iter().collect()
 }
+
+pub fn frequent_words_with_mismatches(text: &str, k: usize, d: usize) -> Vec<String> {
+    let mut patterns: Vec<String> = Vec::new();
+    let mut freq_map = HashMap::<String, usize>::new();
+    let n = text.len();
+    
+    if k > n {
+        return patterns;
+    }
+    
+    for i in 0..=n - k {
+        let pattern = &text[i..i + k];
+        let neighborhood = neighbors(pattern, d);
+        for neighbor in neighborhood {
+            *freq_map.entry(neighbor).or_insert(0) += 1;
+        }
+    }
+    
+    if let Some(&max_value) = freq_map.values().max() {
+        patterns = freq_map
+            .into_iter()
+            .filter_map(|(key, value)| {
+                if value == max_value {
+                    Some(key)
+                } else {
+                    None
+                }
+            })
+            .collect();
+    }
+    patterns
+}
+
+pub fn frequent_words_with_mismatches_and_complement(text: &str, k: usize, d: usize) -> Vec<String> {
+    let mut patterns: Vec<String> = Vec::new();
+    let mut freq_map = HashMap::<String, usize>::new();
+    let n = text.len();
+    
+    if k > n {
+        return patterns;
+    }
+    
+    for i in 0..=n - k {
+        let pattern = &text[i..i + k];
+        let neighborhood = neighbors(pattern, d);
+        for neighbor in neighborhood {
+            *freq_map.entry(neighbor.clone()).or_insert(0) += 1;
+            *freq_map.entry(reverse_complement(&neighbor)).or_insert(0) += 1;
+        }
+    }
+    
+    if let Some(&max_value) = freq_map.values().max() {
+        patterns = freq_map
+            .into_iter()
+            .filter_map(|(key, value)| {
+                if value == max_value {
+                    Some(key)
+                } else {
+                    None
+                }
+            })
+            .collect();
+    }
+    patterns
+}
+
+
 

@@ -1,4 +1,4 @@
-use bioinformatics::{frequent_words};
+use bioinformatics::{frequent_words_with_mismatches_and_complement};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::collections::HashMap;
@@ -42,20 +42,20 @@ fn have_same_elements(a: &[String], b: &[String]) -> bool {
     count_a == count_b
 }
 
-fn test_frequent_words(input_file: &str) {
-    let input_params = read_parameters_from_file("../../data/1B/inputs/".to_string() + input_file);
-    let output_params = read_parameters_from_file("../../data/1B/outputs/".to_string() + input_file);
-    let result = frequent_words(&input_params[0], input_params[1].parse().unwrap());
+fn test_frequent_words_with_mismatches_and_complement(input_file: &str) {
+    let input_params = read_parameters_from_file("../../data/1L/inputs/".to_string() + input_file);
+    let output_params = read_parameters_from_file("../../data/1L/outputs/".to_string() + input_file);
+    let result = frequent_words_with_mismatches_and_complement(&input_params[0], input_params[1].parse().unwrap(),input_params[2].parse().unwrap());
     println!("{:?}", result);
     assert!(have_same_elements(&result, &output_params));
 }
 
 #[test]
-fn test1_frequent_words() {
-    test_frequent_words("testset.txt");
+fn test1_frequent_words_with_mismatches_and_complement() {
+    test_frequent_words_with_mismatches_and_complement("testset.txt");
 }
 
 #[test]
-fn test2_frequent_words() {
-    test_frequent_words("dataset_30272_13.txt");
+fn test2_frequent_words_with_mismatches() {
+    test_frequent_words_with_mismatches_and_complement("dataset_30278_10.txt");
 }

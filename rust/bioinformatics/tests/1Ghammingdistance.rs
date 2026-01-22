@@ -37,11 +37,11 @@ fn test1_hamming_distance() {
 }
 
 #[test]
-fn test2_frequent_words() {
+fn test2_hamming_distance() {
     test_hamming_distance("quiz.txt");
 }
 
 #[test]
-fn test3_frequent_words() {
+fn test3_hamming_distance() {
     test_hamming_distance("dataset_30278_3.txt");
 }
