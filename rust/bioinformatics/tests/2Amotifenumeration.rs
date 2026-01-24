@@ -45,8 +45,8 @@ fn have_same_elements(a: &[String], b: &[String]) -> bool {
 fn test_motif_enumeration(input_file: &str) {
     let input_params = read_parameters_from_file("../../data/2A/inputs/".to_string() + input_file);
     let output_params = read_parameters_from_file("../../data/2A/outputs/".to_string() + input_file);
-    let result = motif_enumeration(&input_params[2], input_params[0].parse().unwrap(), input_params[1].parse().unwrap(),);
-    println!("{:?}", result);
+    let result = motif_enumeration(&input_params[2..], input_params[0].parse().unwrap(), input_params[1].parse().unwrap(),);
+    println!("Result: {:?}", result);
     assert!(have_same_elements(&result, &output_params));
 }
 
@@ -56,7 +56,12 @@ fn test1_motif_enumeration() {
 }
 
 #[test]
-#[ignore]
 fn test2_motif_enumeration() {
-    test_motif_enumeration("dataset_30272_13.txt");
+    test_motif_enumeration("dataset_30302_8.txt");
+}
+
+#[test]
+#[ignore]
+fn test3_motif_enumeration() {
+    test_motif_enumeration("motif_dataset.txt");
 }

@@ -239,11 +239,74 @@ pub fn frequent_words_with_mismatches_and_complement(text: &str, k: usize, d: us
     patterns
 }
 
-pub fn motif_enumeration(dna: &str, k: usize, d: usize) -> Vec<String> {
-    let patterns<String> = HashSet::new();
-    let text = dna.split_whitespace();
-    for i in 0..=text[0].len() - k {
-        
+pub fn motif_enumeration(dna: &[String], k: usize, d: usize) -> Vec<String> {
+    let mut patterns: HashSet<String> = HashSet::new();
+    let text: Vec<&str> = dna.iter().map(|s| s.as_str()).collect();
+    if text.is_empty() || k == 0 {
+        return Vec::new();
     }
+    
+    for i in 0..=text[0].len() - k {
+        let pattern = &text[0][i..i + k];
+        let neighborhood = neighbors(pattern, d);
+        'neighbor_loop: for elem in neighborhood {
+            for j in 1..text.len() {
+               let pattern_cnt = approximate_pattern_count(text[j], &elem, d);
+               if pattern_cnt == 0 {
+                    continue 'neighbor_loop;
+               }
+               
+            }
+            patterns.insert(elem.clone());
+        }
+    }
+    patterns.into_iter().collect()
 }
+
+pub fn score(motifs: Vec<String>) -> usize {
+    if motifs.is_empty() {
+        return 0;
+    }
+    let motifs_size = motifs.len();
+    count(motifs)
+        .iter()
+        .map(|column| {
+            let max = column.values().copied().max().unwrap_or(0);
+            motifs_size - max
+        })
+        .sum()
+}
+
+pub fn entropy(motifs: Vec<String>) -> f32 {
+    42.0
+}
+
+pub fn count(motifs: Vec<String>) -> Vec<HashMap<char,usize>> {
+    let mut counting = Vec::new();
+    let motifs_size = motifs.len();
+    let k = motifs[0].len();
+    for i in 0..k {
+        let mut elem: HashMap<char,usize> = HashMap::new();
+        for j in 0..motifs_size {
+            *elem.entry(motifs[j].chars().nth(i).unwrap()).or_insert(0) += 1;
+        }
+        counting.push(elem);
+    }
+    counting
+}
+
+pub fn profile(motifs: Vec<String>) -> Vec<HashMap<char,f32>> {
+    let divisor = motifs.len() as f32;
+    let counts = count(motifs);
+    
+    
+    counts.iter().map(|ele|ele.iter().map(|(k,v)| (*k, *v as f32 / divisor)).collect()).collect()
+}
+
+pub fn consensus(motifs: Vec<String>) -> String {
+    "AGCCT".to_string()
+}
+
+
+
 
