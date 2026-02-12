@@ -1,8 +1,56 @@
 use std::collections::HashSet;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use rand::prelude::*;
 use rand::distr::weighted::WeightedIndex;
 use rand::distr::Distribution;
+use rand::seq::IteratorRandom;
+use rand::thread_rng;
+
+pub fn read_parameters_from_file(filename: String) -> Vec<String> {
+    let contents = File::open(filename).expect("Failed to read file");
+    let reader = BufReader::new(contents);
+    let mut results = Vec::new();
+    
+    for line_result in reader.lines() {
+        match line_result {
+            Ok(line) => {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                for entry in parts.iter() {
+                    results.push(entry.to_string());
+                }
+            }
+            Err(e) => {
+                eprintln!("Error reading line: {}", e);
+            }
+        }
+    }
+    results
+}
+
+pub fn convert_parameters_to_hashmap(inputs: &Vec<String>) -> HashMap<String, Vec<String>> {
+    let mut map: HashMap<String, Vec<String>> = HashMap::new();
+    let mut last_key = "".to_string();
+    for entry in inputs {
+        if entry.ends_with(':') {
+            last_key = entry.to_string();
+        } else {
+            map.entry(last_key.clone()).or_insert(Vec::new()).push(entry.clone());
+        }
+    }
+    let mut new_map = HashMap::new();
+    for (key, value) in map.into_iter() {
+        // Remove last character safely
+        let new_key = if key.len() > 0 {
+            key[..key.len() - 1].to_string()
+        } else {
+            key // Keep empty keys unchanged
+        };
+        new_map.insert(new_key, value);
+    }
+    new_map
+}
 
 pub fn pattern_count(text: &str, pattern: &str) -> usize {
     if pattern.is_empty() || text.len() < pattern.len() {
@@ -578,6 +626,7 @@ pub fn composition(strand: String, k:usize) -> Vec<String> {
     Assumptions: 
     - all kmers in the vector have the same length
 */
+/*
 pub fn decomposition(kmers: Vec<String>) -> String {
     let kmer1 = &kmers[0];
     let kmer2 = &kmers[1];
@@ -591,11 +640,20 @@ pub fn decomposition(kmers: Vec<String>) -> String {
             break;
         }
     }
-
+    println!("pos = {:?}", &pos);
     let mut result = kmer1.to_string();
     for i in 1..l {
-        println!("{:?}",&kmers[i][k-pos..k]);
         result.push_str(&kmers[i][k-pos..k]);
+    }
+    result
+}*/
+
+pub fn decomposition(kmers: Vec<String>) -> String {
+    let mut result = kmers[0].to_string();
+    for i in 1..kmers.len() {
+        if let Some(last_char) = kmers[i].chars().last() {
+            result.push(last_char);
+        }
     }
     result
 }
@@ -614,7 +672,7 @@ pub fn overlap_graph(kmers: Vec<String>) -> HashMap<String, Vec<String>> {
             graf.insert(s.to_string(),overlaps);
         }
     }
-    println!("Graph: {:?}", graf);
+    //println!("Graph: {:?}", graf);
     graf
 }
 
@@ -642,6 +700,133 @@ pub fn de_bruijn(kmers: Vec<String>) ->  HashMap<String, Vec<String>> {
         map.entry(key.to_string()).or_insert(Vec::new()).push(kmer[1..].to_string());
     }
     map
+}
+
+pub fn eulerian_cycle(mut map: HashMap<String, Vec<String>>) -> Vec<String> {
+    let mut path: Vec<String>= Vec::new();
+    let mut keys_with_exit:HashSet<String> = HashSet::new();
+    let mut keys: Vec<String> = Vec::new();
+    let mut no_of_keys;
+    let mut start_key: String; 
+    loop {
+        keys = map.keys().cloned().collect();
+        no_of_keys = map.len();
+        if path.is_empty() {
+            start_key = keys[random_number(no_of_keys)].to_string();
+            path.push(start_key.clone());
+        } else {
+            start_key = keys_with_exit.iter().choose(&mut thread_rng()).unwrap().clone();
+            let pos = path.iter().position(|r| *r == start_key).unwrap();
+            path.rotate_left(pos);
+            path.push(start_key.clone());
+            println!("start_key, path: {:?} {:?}", &start_key, &path);
+        }
+        println!("Start Key = {:?}", start_key);
+
+        loop {
+            if let Some(next_nodes) = map.get_mut(&start_key) {    
+                if next_nodes.is_empty() {
+                    break;
+                }
+                let node_length = next_nodes.len();
+                let idx = random_number(node_length);
+                let new_start_key = next_nodes.remove(idx); // removes and returns owned String
+                if node_length == 1 {
+                    map.remove(&start_key);
+                    keys_with_exit.remove(&start_key);
+                } else {
+                    keys_with_exit.insert(start_key.clone());
+                }
+                path.push(new_start_key.clone());
+                start_key = new_start_key;
+            } else {
+                path.pop();
+                println!("remove last element! path afterwards: {:?}", path);
+                break;
+            }
+            
+            println!("path map {:?} {:?} ", &path, &map);
+            if map.is_empty() { 
+                //path.pop();
+                break;
+            }
+        }
+        if map.is_empty() {
+                //path.insert(0,path.last().unwrap().to_string());
+                break;
+        }
+    }
+    path
+}
+
+fn find_first_and_last_node(map: &HashMap<String, Vec<String>>) -> (String, String) {
+    let mut counter: HashMap<String, usize> =  HashMap::new();
+    for v in map.values() {
+        for elem in v {
+            *counter.entry(elem.to_string()).or_insert(0) += 1;
+        }
+    }
+    //println!("counter: {:?}", counter);
+    let mut first_node = "ERROR";
+    let mut last_node = "ERROR";
+    for entry in counter.keys() {
+        let in_v:usize = *counter.get(entry).unwrap();
+        let empty: Vec<String> = Vec::new();
+        let e = map.get(entry).unwrap_or(&empty); 
+        let out_v = e.len();
+        if out_v > in_v {
+            first_node = entry;
+        }
+        if out_v < in_v {
+            last_node = entry;
+        }
+        if out_v != in_v {
+            //println!("Special cases: {:?} {:?} {:?}", out_v, in_v, entry);
+        }
+    }
+    if first_node == "ERROR" {
+        for elem in map.keys() {
+            if !counter.contains_key(elem) {
+                first_node = elem;
+            }
+        }
+    }
+    //println!("first_node: {:?} ", first_node);
+    //println!("last_node: {:?} ", last_node);
+    (first_node.to_string(), last_node.to_string())
+}
+
+pub fn eulerian_path(mut map: HashMap<String, Vec<String>>) -> Vec<String> {
+    let (first_node, last_node) = find_first_and_last_node(&map);
+    if first_node != "ERROR".to_string() {
+        map.entry(last_node.clone()).or_insert(Vec::new()).push(first_node.clone());
+    }
+    let mut cycle = eulerian_cycle(map);
+    let mut path: Vec<String>;
+    if first_node != "ERROR".to_string() { 
+        cycle.pop().unwrap();
+        path = cycle;
+        let mut pos = 0;
+        while *path.last().unwrap() != last_node {
+            for (index, elem) in path.iter().enumerate() {
+                if *elem == first_node && index != 0 {
+                    pos = index;
+                    break;
+                }
+            }
+            path.rotate_left(pos);
+            //println!("path: {:?}", path);
+        }
+    } else {
+        path = cycle;
+    }
+    path
+}
+
+pub fn string_reconstruction(_k: usize, patterns: Vec<String>) -> String {
+    let db = de_bruijn(patterns);
+    let path = eulerian_path(db);
+    decomposition(path)
 }
 
 
