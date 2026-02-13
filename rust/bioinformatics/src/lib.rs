@@ -8,6 +8,9 @@ use rand::distr::Distribution;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 
+mod common;
+mod replicationorigin;
+
 pub fn read_parameters_from_file(filename: String) -> Vec<String> {
     let contents = File::open(filename).expect("Failed to read file");
     let reader = BufReader::new(contents);
@@ -827,6 +830,27 @@ pub fn string_reconstruction(_k: usize, patterns: Vec<String>) -> String {
     let db = de_bruijn(patterns);
     let path = eulerian_path(db);
     decomposition(path)
+}
+
+pub fn string_spelled_by_patterns(patterns: &Vec<String>) -> String {
+    let mut d = String::new();
+    for elem in patterns {
+        if let Some(ch) = elem.chars().next() {
+            d.push(ch);
+        }
+    }
+    d
+}
+
+pub fn k_universal_circular(k: usize) -> String {
+    let mut patterns: Vec<String> = Vec::new();
+    for i in 0..2<<(k-1) {
+        patterns.push(format!("{i:0width$b}", width=k));
+    }
+    let db = de_bruijn(patterns);
+    let mut path = eulerian_cycle(db);
+    path.pop();
+    string_spelled_by_patterns(&path)
 }
 
 
