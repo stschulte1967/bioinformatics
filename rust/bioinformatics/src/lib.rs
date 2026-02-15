@@ -705,6 +705,21 @@ pub fn de_bruijn(kmers: Vec<String>) ->  HashMap<String, Vec<String>> {
     map
 }
 
+pub fn paired_de_bruijn(kmers: Vec<String>) ->  HashMap<String, Vec<String>> {
+    let mut map = HashMap::new();
+    for kmer in kmers {
+        let gapped_str:Vec<&str> = kmer.split('|').collect();
+        let mut iterator = gapped_str.iter();
+        let first_part = iterator.next().unwrap().to_string();
+        let second_part = iterator.next().unwrap().to_string();
+        let k = first_part.len();
+        let key = format!("{}|{}", first_part[0..k-1].to_string(), second_part[0..k-1].to_string());
+        let value = format!("{}|{}", first_part[1..k].to_string(), second_part[1..k].to_string());
+        map.entry(key.to_string()).or_insert(Vec::new()).push(value.to_string());
+    }
+    map
+}
+
 pub fn eulerian_cycle(mut map: HashMap<String, Vec<String>>) -> Vec<String> {
     let mut path: Vec<String>= Vec::new();
     let mut keys_with_exit:HashSet<String> = HashSet::new();
@@ -722,9 +737,8 @@ pub fn eulerian_cycle(mut map: HashMap<String, Vec<String>>) -> Vec<String> {
             let pos = path.iter().position(|r| *r == start_key).unwrap();
             path.rotate_left(pos);
             path.push(start_key.clone());
-            println!("start_key, path: {:?} {:?}", &start_key, &path);
+            //println!("start_key, path: {:?} {:?}", &start_key, &path);
         }
-        println!("Start Key = {:?}", start_key);
 
         loop {
             if let Some(next_nodes) = map.get_mut(&start_key) {    
@@ -744,11 +758,11 @@ pub fn eulerian_cycle(mut map: HashMap<String, Vec<String>>) -> Vec<String> {
                 start_key = new_start_key;
             } else {
                 path.pop();
-                println!("remove last element! path afterwards: {:?}", path);
+                //println!("remove last element! path afterwards: {:?}", path);
                 break;
             }
             
-            println!("path map {:?} {:?} ", &path, &map);
+            //println!("path map {:?} {:?} ", &path, &map);
             if map.is_empty() { 
                 //path.pop();
                 break;
@@ -832,7 +846,7 @@ pub fn string_reconstruction(_k: usize, patterns: Vec<String>) -> String {
     decomposition(path)
 }
 
-pub fn string_spelled_by_patterns(patterns: &Vec<String>) -> String {
+fn glue_patterns(patterns: &Vec<String>) -> String {
     let mut d = String::new();
     for elem in patterns {
         if let Some(ch) = elem.chars().next() {
@@ -850,7 +864,60 @@ pub fn k_universal_circular(k: usize) -> String {
     let db = de_bruijn(patterns);
     let mut path = eulerian_cycle(db);
     path.pop();
-    string_spelled_by_patterns(&path)
+    glue_patterns(&path)
+}
+
+pub fn string_spelled_by_patterns(patterns: &Vec<String>) -> String {
+    let n = patterns.len();
+    let k = patterns[0].len();
+    let mut s: String = patterns[0].clone();
+    if n > k {
+        for i in k..n-1 {
+            //println!("Add middle entry {}", i);
+            if let Some(ch) = patterns[i].chars().next() {
+                s.push(ch);
+            }
+        }
+    }
+    let mut part2: String = patterns.last().unwrap().to_string();
+    let part1_length = s.len();
+    let part2_length = part2.len();
+    let requiredLen = k + n - 1;
+    if part1_length + part2_length > requiredLen {
+        part2 = part2[k-n+1..].to_string();
+    }
+    format!("{}{}",s,part2)
+}
+
+pub fn string_spelled_by_gapped_patterns(k: usize, d: usize, patterns: &Vec<String>) -> String {
+    let n = patterns.len();
+    let mut initials: Vec<String> = Vec::new();
+    let mut terminals: Vec<String> = Vec::new();
+    for elem in patterns {
+        let gapped_str:Vec<&str> = elem.split('|').collect();
+        let mut iterator = gapped_str.iter();
+        initials.push(iterator.next().unwrap().to_string());
+        terminals.push(iterator.next().unwrap().to_string());
+    }
+    let prefix_string = string_spelled_by_patterns(&initials);
+    let suffix_string = string_spelled_by_patterns(&terminals);
+    //println!("{:?} {:?}", &prefix_string,&suffix_string);
+    let ls = suffix_string.len();
+    for i in k + d..ls {
+        let i1: usize = i;
+        let j:usize = i-k-d;
+        if prefix_string.get(i1..i1+1).unwrap() != suffix_string.get(j..j+1).unwrap() {
+            return "there is no string spelled by the gapped patterns".to_string();
+        }
+    }
+    format!("{}{}",prefix_string, suffix_string[ls-k-d..ls].to_string())    
+}
+
+pub fn string_from_paired_composition(k: usize, d: usize, patterns: &Vec<String>) -> String {
+    //println!("patterns: {:?}", patterns);
+    let db = paired_de_bruijn(patterns.clone());
+    let path: Vec<String> = eulerian_path(db);
+    string_spelled_by_gapped_patterns(k, d, &path)
 }
 
 
