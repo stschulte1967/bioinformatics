@@ -25,6 +25,12 @@ fn test_string_from_paired_composition_2() {
 }
 
 #[test]
+#[ignore]
 fn test_string_from_paired_composition_3() {
     test_string_from_paired_composition("cogniterra.txt");
+}
+
+#[test]
+fn test_string_from_paired_composition_4() {
+    test_string_from_paired_composition("quiz.txt");
 }

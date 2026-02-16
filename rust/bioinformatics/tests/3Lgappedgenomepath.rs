@@ -56,3 +56,5 @@ fn test_string_spelled_by_gapped_patterns_5() {
 fn test_string_spelled_by_gapped_patterns_6() {
     test_string_spelled_by_gapped_patterns("testset4.txt");
 }
+
+

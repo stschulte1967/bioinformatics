@@ -10,6 +10,7 @@ use rand::thread_rng;
 
 mod common;
 mod replicationorigin;
+pub mod sequencing;
 
 pub fn read_parameters_from_file(filename: String) -> Vec<String> {
     let contents = File::open(filename).expect("Failed to read file");
