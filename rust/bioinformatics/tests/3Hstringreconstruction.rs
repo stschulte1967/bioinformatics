@@ -24,3 +24,8 @@ fn test_string_reconstruction_2() {
 fn test_string_reconstruction_3() {
     test_string_reconstruction("cogniterra.txt");
 }
+
+#[test]
+fn test_string_reconstruction_4() {
+    test_string_reconstruction("quiz.txt");
+}

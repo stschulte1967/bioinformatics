@@ -921,5 +921,84 @@ pub fn string_from_paired_composition(k: usize, d: usize, patterns: &Vec<String>
     string_spelled_by_gapped_patterns(k, d, &path)
 }
 
+pub fn maximal_non_branching_path(graph: HashMap<String,Vec<String>>) -> Vec<Vec<String>> {
+    let mut paths: Vec<Vec<String>> = Vec::new();
+    let mut counter: HashMap<String, usize> =  HashMap::new();
+    for v in graph.values() {
+        for elem in v {
+            *counter.entry(elem.to_string()).or_insert(0) += 1;
+        }
+    }
+    let nodes: Vec<&String> = graph.keys().collect();
+    let mut untreated_nodes: HashSet<String> = nodes.iter().map(|s| s.to_string()).collect();
+    //println!("nodes: {:?}", &nodes);
+    for v in nodes {  
+        let in_v:usize = *counter.entry(v.to_string()).or_insert(0);
+        let empty: Vec<String> = Vec::new();
+        let e = graph.get(v).unwrap_or(&empty); 
+        let out_v = e.len();
+        println!("if condition: {:?}, {:?}, {:?} {:?}", &v, in_v, out_v, &e);
+        if !(in_v == 1 && out_v == 1) && out_v > 0 {
+            for w in e {
+                let mut w_prime = w.clone();
+                let mut path: Vec<String> = vec![v.to_string(), w.to_string()];
+                untreated_nodes.remove(v);
+                untreated_nodes.remove(w);
+                let mut in_w:usize = *counter.get(&w_prime).unwrap();
+                let mut e1 = graph.get(&w_prime).unwrap_or(&empty); 
+                let mut out_w = e1.len();
+                println!("print v {:?} w {:?} in_w {:?} out_w {:?}", &v, &w, in_w, out_w);
+                while in_w == 1 && out_w == 1 {
+                    let u = e1.get(0).unwrap();
+                    path.push(u.to_string());
+                    untreated_nodes.remove(u);
+                    w_prime = u.clone();
+                    in_w = *counter.get(&w_prime).unwrap();
+                    e1 = graph.get(&w_prime).unwrap_or(&empty);
+                    out_w = e1.len();
+                    println!("print v {:?} w' {:?} in_w {:?} out_w {:?}", &v, &w_prime, in_w, out_w);
+                }
+                paths.push(path);
+            }
+        }  
+    }
+    let mut nodes_handled:HashSet<String> = HashSet::new();
+    for v in untreated_nodes {    
+        let in_v:usize = *counter.entry(v.to_string()).or_insert(0);
+        let empty: Vec<String> = Vec::new();
+        let e = graph.get(&v).unwrap_or(&empty); 
+        let out_v = e.len();
+        println!("v {:?} nodes_handled {:?}", &v, &nodes_handled);
+        if in_v == 1 && out_v == 1 && !nodes_handled.contains(&v) {
+            let mut path: Vec<String> = vec![v.to_string()];
+            nodes_handled.insert(v.to_string());
+            println!("v2 {:?} nodes_handled {:?}", &v, &nodes_handled);
+            let w_vec = graph.get(&v).unwrap();
+            let mut w = w_vec[0].clone();
+            let mut out_w = w_vec.len();
+            let mut cycle_found = true;
+            while out_w == 1 && w != *v {
+               let next_vec = graph.get(&w).unwrap();
+               path.push(w.to_string());
+               nodes_handled.insert(w.to_string());
+               w = next_vec[0].clone();
+               out_w = graph.get(&w).unwrap_or(&empty).len();
+               if out_w != 1 {
+                cycle_found = false;
+               }    
+            }
+            if cycle_found && w == *v {
+                path.push(v.to_string());
+                paths.push(path);
+            }
+        }
+    }
+    paths
+}
 
+pub fn contig_generation(patterns: Vec<String>) -> Vec<String>{
+    let db = de_bruijn(patterns.clone());
+    let contigs_raw = maximal_non_branching_path(db);
+    contigs_raw.iter().map(|x| decomposition(x.to_vec())).collect()
+}
 
