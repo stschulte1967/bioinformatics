@@ -1,4 +1,5 @@
 use crate::common::RNA_CODON_TABLE;
+use crate::common::PEPTIDE_MASS_TABLE;
 use crate::reverse_complement;
 
 pub fn protein_translation(rna: &str) -> String {
@@ -43,5 +44,23 @@ pub fn peptide_encoding(dna: &str, amino_acid: &str) -> Vec<String> {
         }
         i += 1;
     }
+    result
+}
+
+pub fn calculate_weight(amino_acid: &str) -> usize {
+    amino_acid.chars().map(|x| PEPTIDE_MASS_TABLE.get(&x).copied().unwrap_or(0)).sum()
+}
+
+pub fn theoretical_spectrum(amino_acid: &str) -> Vec<usize> {
+    let mut result: Vec<usize> = vec![0];
+    result.push(calculate_weight(&amino_acid));
+    let peptide = format!("{}{}", amino_acid, amino_acid);
+    let l = amino_acid.len();
+    for j in 1..l {
+        for i in 0..l {
+            result.push(calculate_weight(&peptide[i..i+j]));
+        }
+    }
+    result.sort();
     result
 }

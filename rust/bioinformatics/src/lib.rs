@@ -8,8 +8,8 @@ use rand::distr::Distribution;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 
-mod common;
-mod replicationorigin;
+pub mod common;
+pub mod replicationorigin;
 pub mod sequencing;
 
 pub fn read_parameters_from_file(filename: String) -> Vec<String> {
