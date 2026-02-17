@@ -32,4 +32,6 @@ pub static PEPTIDE_MASS_TABLE: Lazy<HashMap<char, usize>> = Lazy::new(|| {
         ('Q', 128), ('E', 129), ('M', 131), ('H', 137),
         ('F', 147), ('R', 156), ('Y', 163), ('W', 186),
     ])
-});         
+});
+
+pub static CONDON_MASSES:[usize;18] = [57,71,87,97,99,101,103,113,114,115,128,129,131,137,147,156,163,186];
