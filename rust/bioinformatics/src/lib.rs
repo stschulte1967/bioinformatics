@@ -1002,3 +1002,21 @@ pub fn contig_generation(patterns: Vec<String>) -> Vec<String>{
     contigs_raw.iter().map(|x| decomposition(x.to_vec())).collect()
 }
 
+pub fn have_same_elements(a: &[String], b: &[String]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+
+    let mut count_a = HashMap::new();
+    let mut count_b = HashMap::new();
+
+    for item in a {
+        *count_a.entry(item).or_insert(0) += 1;
+    }
+    for item in b {
+        *count_b.entry(item).or_insert(0) += 1;
+    }
+
+    count_a == count_b
+}
+

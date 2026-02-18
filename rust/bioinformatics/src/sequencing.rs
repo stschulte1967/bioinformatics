@@ -156,3 +156,21 @@ pub fn cyclopeptide_sequencing(spectrum: Vec<usize>) -> HashSet<Vec<usize>> {
     }
     final_peptides
 }
+
+pub fn linear_spectrum(peptide: &String) -> Vec<usize> {
+    let chars: Vec<char> = peptide.chars().collect();
+    let mut prefix_mass: Vec<usize> = vec![0; chars.len() + 1];
+    for i in 0..chars.len() {
+        let mass = PEPTIDE_MASS_TABLE.get(&chars[i]).copied().unwrap_or(0);
+        prefix_mass[i + 1] = prefix_mass[i] + mass;
+    }
+
+    let mut spectrum: Vec<usize> = vec![0];
+    for i in 0..chars.len() {
+        for j in (i + 1)..=chars.len() {
+            spectrum.push(prefix_mass[j] - prefix_mass[i]);
+        }
+    }
+    spectrum.sort();
+    spectrum
+}
