@@ -48,6 +48,12 @@ fn test_linear_score_2() {
     test_linear_score("rosalind.txt");
 }
 
+/*
+#[test]
+fn test_linear_score_4() {
+    test_linear_score("rosalind2.txt");
+} */
+
 #[test]
 #[ignore]
 fn test_linear_score_3() {
