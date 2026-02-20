@@ -174,3 +174,38 @@ pub fn linear_spectrum(peptide: &String) -> Vec<usize> {
     spectrum.sort();
     spectrum
 }
+
+pub fn score(peptide:&String, spectrum: Vec<usize>) -> usize {
+    let peptide_spectrum = theoretical_spectrum(peptide);
+    println!("peptide_spectrum = {:?}", peptide_spectrum);
+    let mut correct_entries = 0;
+    let mut j = 0;
+    for (i, elem) in peptide_spectrum.iter().enumerate() {
+        while j < spectrum.len() && *elem > spectrum[j] {
+            j = j + 1;
+        }
+        if j < spectrum.len() && *elem == spectrum[j] {
+            j = j + 1;
+            correct_entries += 1;
+        }
+         
+    }
+    correct_entries
+}
+
+pub fn linear_score(peptide:&String, spectrum: Vec<usize>) -> usize {
+    let peptide_spectrum = linear_spectrum(peptide);
+    let mut correct_entries = 0;
+    let mut j = 0;
+    for (i, elem) in peptide_spectrum.iter().enumerate() {
+        while j < spectrum.len() && *elem > spectrum[j] {
+            j = j + 1;
+        }
+        if j < spectrum.len() && *elem == spectrum[j] {
+            j = j + 1;
+            correct_entries += 1;
+        }
+         
+    }
+    correct_entries
+}

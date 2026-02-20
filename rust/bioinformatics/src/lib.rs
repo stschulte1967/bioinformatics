@@ -33,6 +33,25 @@ pub fn read_parameters_from_file(filename: String) -> Vec<String> {
     results
 }
 
+pub fn read_parameters_from_file_by_line(filename: String) -> Vec<Vec<String>> {
+    let contents = File::open(filename).expect("Failed to read file");
+    let reader = BufReader::new(contents);
+    let mut results: Vec<Vec<String>> = Vec::new();
+    
+    for line_result in reader.lines() {
+        match line_result {
+            Ok(line) => {
+                let parts: Vec<String> = line.split_whitespace().map(|x| x.to_string()).collect();
+                results.push(parts);
+            }
+            Err(e) => {
+                eprintln!("Error reading line: {}", e);
+            }
+        }
+    }
+    results
+}
+
 pub fn convert_parameters_to_hashmap(inputs: &Vec<String>) -> HashMap<String, Vec<String>> {
     let mut map: HashMap<String, Vec<String>> = HashMap::new();
     let mut last_key = "".to_string();
