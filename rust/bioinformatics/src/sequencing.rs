@@ -175,6 +175,22 @@ pub fn linear_spectrum(peptide: &String) -> Vec<usize> {
     spectrum
 }
 
+pub fn linear_spectrum_masses(peptide: &Vec<usize>) -> Vec<usize> {
+    let mut prefix_mass: Vec<usize> = vec![0; peptide.len() + 1];
+    for i in 0..peptide.len() {
+        prefix_mass[i + 1] = prefix_mass[i] + peptide[i];
+    }
+
+    let mut spectrum: Vec<usize> = vec![0];
+    for i in 0..peptide.len() {
+        for j in (i + 1)..=peptide.len() {
+            spectrum.push(prefix_mass[j] - prefix_mass[i]);
+        }
+    }
+    spectrum.sort();
+    spectrum
+}
+
 pub fn score(peptide:&String, spectrum: Vec<usize>) -> usize {
     let peptide_spectrum = theoretical_spectrum(peptide);
     println!("peptide_spectrum = {:?}", peptide_spectrum);
@@ -228,6 +244,23 @@ pub fn linear_score(peptide:&String, spectrum: Vec<usize>) -> usize {
     correct_entries
 }
 
+pub fn linear_score_masses(peptide:&Vec<usize>, spectrum: Vec<usize>) -> usize {
+    let peptide_spectrum = linear_spectrum_masses(peptide);
+    let mut correct_entries = 0;
+    let mut j = 0;
+    for (i, elem) in peptide_spectrum.iter().enumerate() {
+        while j < spectrum.len() && *elem > spectrum[j] {
+            j = j + 1;
+        }
+        if j < spectrum.len() && *elem == spectrum[j] {
+            j = j + 1;
+            correct_entries += 1;
+        }
+         
+    }
+    correct_entries
+}
+
 pub fn trim(peptides: Vec<String>, spectrum:Vec<usize>, no_of_leaders: usize) -> Vec<String> {
     //println!("input params: {:?} | {:?} | {:?}", peptides, spectrum, no_of_leaders);
     let mut linear_scores:Vec<(String,usize)> = Vec::new();
@@ -236,54 +269,140 @@ pub fn trim(peptides: Vec<String>, spectrum:Vec<usize>, no_of_leaders: usize) ->
     }
 
     linear_scores.sort_by(|a, b| b.1.cmp(&a.1));
-    println!("linear scores {:?}", linear_scores);
-    let mut first_element_to_discard = 0;
-    for i in no_of_leaders-1..peptides.len() {
+    if linear_scores.is_empty() {
+        return Vec::new();
+    }
+    if linear_scores.len() <= no_of_leaders {
+        return linear_scores.into_iter().map(|x| x.0).collect();
+    }
+
+    let mut first_element_to_discard = linear_scores.len();
+    for i in no_of_leaders-1..linear_scores.len() {
         if linear_scores[i].1 < linear_scores[no_of_leaders-1].1 {
-            println!("to compare: {:?} {:?}", &linear_scores[i], &linear_scores[no_of_leaders-1]);        
             first_element_to_discard = i;
             break;
         }
     }
-    println!("first_element_to_discard {:?}", first_element_to_discard);
     linear_scores[0..first_element_to_discard].to_vec().into_iter().map(|x| x.0).collect()
 }
 
-pub fn leaderboard_cyclopeptide_sequencing(spectrum: Vec<usize>, n: usize) -> Vec<usize> {
+pub fn trim_masses(peptides: HashSet<Vec<usize>>, spectrum:Vec<usize>, no_of_leaders: usize) -> HashSet<Vec<usize>> {
+    //println!("input params: {:?} | {:?} | {:?}", peptides, spectrum, no_of_leaders);
+    let mut linear_scores:Vec<(Vec<usize>,usize)> = Vec::new();
+    for elem in &peptides {
+        linear_scores.push((elem.clone(), linear_score_masses(&elem, spectrum.clone())));
+    }
+
+    linear_scores.sort_by(|a, b| b.1.cmp(&a.1));
+    if linear_scores.is_empty() {
+        return HashSet::new();
+    }
+    if linear_scores.len() <= no_of_leaders {
+        return linear_scores.into_iter().map(|x| x.0).collect();
+    }
+
+    let mut first_element_to_discard = linear_scores.len();
+    for i in no_of_leaders-1..linear_scores.len() {
+        if linear_scores[i].1 < linear_scores[no_of_leaders-1].1 {
+            first_element_to_discard = i;
+            break;
+        }
+    }
+    linear_scores[0..first_element_to_discard].to_vec().into_iter().map(|x| x.0).collect()
+}
+
+pub fn leaderboard_cyclopeptide_sequencing(spectrum: &Vec<usize>, n: usize) -> Vec<usize> {
     let parent_mass = spectrum.last().unwrap();
-    let leader_peptide:Vec<usize> = Vec::new();
-    //let mut final_peptides: HashSet<Vec<usize>> = HashSet::new();
+    let mut leader_peptide:Vec<usize> = Vec::new();
     let mut leaderboard: HashSet<Vec<usize>> = HashSet::new();
-    //let mut potential_elems:Vec<usize> = Vec::new();
-    //for elem in CONDON_MASSES {
-    //    if spectrum.contains(&elem) {
-    //        potential_elems.push(elem);
-    //    }
-    //}
-    //candidate_peptides.insert(vec![]);
+    leaderboard.insert(vec![]);
     
     while !leaderboard.is_empty() {
-        let mut leaderboard = expand(&leaderboard, CONDON_MASSES.to_vec());
-        let mut next_candidates= leaderboard.clone();
+        leaderboard = expand(&leaderboard, CONDON_MASSES.to_vec());
+        let mut next_candidates = leaderboard.clone();
         
         for peptide in &leaderboard {
-
             if mass(peptide.to_vec()) == *parent_mass {
-                if score_masses(peptide.to_vec(), spectrum) > score_masses(leader_peptide, spectrum) {
+                if score_masses(peptide.to_vec(), spectrum.to_vec()) > score_masses(leader_peptide.clone(), spectrum.to_vec()) {
                     leader_peptide = peptide.to_vec();
                 }
             } else {
-                //let mut sorted_peptide = peptide.clone();
-                //sorted_peptide.sort();
-                //if !is_consistent(sorted_peptide, spectrum.clone()) {
-                //    next_candidates.remove(peptide);
-                //}
-                if score_masses(peptide.to_vec, spectrum) > *parent_mass {
-                    leaderboard.remove(peptide);
+                if mass(peptide.to_vec()) > *parent_mass {
+                    next_candidates.remove(peptide);
                 }
             }
         }
-        leaderboard = trim(leaderboard, spectrum, n);
+        leaderboard = trim_masses(next_candidates, spectrum.to_vec(), n);
     }
     leader_peptide
+}
+
+pub fn leaderboard_cyclopeptide_sequencing_2(spectrum: &Vec<usize>, n: usize) -> Vec<Vec<usize>> {
+    let parent_mass = spectrum.last().unwrap();
+    let mut leader_peptides:Vec<Vec<usize>> = Vec::new();
+    let mut score_leader = 0;
+    let mut leaderboard: HashSet<Vec<usize>> = HashSet::new();
+    leaderboard.insert(vec![]);
+    
+    while !leaderboard.is_empty() {
+        leaderboard = expand(&leaderboard, CONDON_MASSES.to_vec());
+        let mut next_candidates = leaderboard.clone();
+        
+        for peptide in &leaderboard {
+            if mass(peptide.to_vec()) == *parent_mass {
+                let score_peptide = score_masses(peptide.to_vec(), spectrum.to_vec());
+                if score_peptide > score_leader {
+                    leader_peptides = vec![peptide.to_vec()];
+                    score_leader = score_masses(peptide.clone(), spectrum.to_vec());
+                }
+                if score_peptide == score_leader {
+                    if !leader_peptides.contains(peptide) {
+                        leader_peptides.push(peptide.to_vec());
+                    }
+                }
+            } else {
+                if mass(peptide.to_vec()) > *parent_mass {
+                    next_candidates.remove(peptide);
+                }
+            }
+        }
+        leaderboard = trim_masses(next_candidates, spectrum.to_vec(), n);
+    }
+    println!("leader_peptides= {:?} {:?} {:?}", &leader_peptides, score_leader, leader_peptides.len());
+    leader_peptides
+}
+
+pub fn leaderboard_cyclopeptide_sequencing_3(spectrum: &Vec<usize>, n: usize) -> Vec<Vec<usize>> {
+    let parent_mass = spectrum.last().unwrap();
+    let mut leader_peptides:Vec<Vec<usize>> = Vec::new();
+    let mut score_leader = 0;
+    let mut leaderboard: HashSet<Vec<usize>> = HashSet::new();
+    leaderboard.insert(vec![]);
+    
+    while !leaderboard.is_empty() {
+        leaderboard = expand(&leaderboard, (57..=200).collect());
+        let mut next_candidates = leaderboard.clone();
+        
+        for peptide in &leaderboard {
+            if mass(peptide.to_vec()) == *parent_mass {
+                let score_peptide = score_masses(peptide.to_vec(), spectrum.to_vec());
+                if score_peptide > score_leader {
+                    leader_peptides = vec![peptide.to_vec()];
+                    score_leader = score_masses(peptide.clone(), spectrum.to_vec());
+                }
+                if score_peptide == score_leader {
+                    if !leader_peptides.contains(peptide) {
+                        leader_peptides.push(peptide.to_vec());
+                    }
+                }
+            } else {
+                if mass(peptide.to_vec()) > *parent_mass {
+                    next_candidates.remove(peptide);
+                }
+            }
+        }
+        leaderboard = trim_masses(next_candidates, spectrum.to_vec(), n);
+    }
+    println!("leader_peptides= {:?} {:?} {:?}", &leader_peptides, score_leader, leader_peptides.len());
+    leader_peptides
 }
