@@ -3,6 +3,7 @@ use crate::common::PEPTIDE_MASS_TABLE;
 use crate::common::CONDON_MASSES;
 use crate::reverse_complement;
 use std::collections::HashSet;
+use std::collections::HashMap;
 
 pub fn protein_translation(rna: &str) -> String {
     let codon_count = rna.len() / 3;
@@ -405,4 +406,35 @@ pub fn leaderboard_cyclopeptide_sequencing_3(spectrum: &Vec<usize>, n: usize) ->
     }
     println!("leader_peptides= {:?} {:?} {:?}", &leader_peptides, score_leader, leader_peptides.len());
     leader_peptides
+}
+
+pub fn spectral_convolution(spectrum: Vec<usize>) -> Vec<usize> {
+    let mut result: Vec<usize> = Vec::new();
+    let mut map: HashMap<usize,usize> = HashMap::new();  
+    let spectrum_size = spectrum.len();
+    for j in 1..spectrum_size {
+        for i in 0..spectrum_size {
+            println!("{:?} {:?} {:?} {:?}", i, j, &spectrum[i], &spectrum[j]);
+            /*if spectrum[i] < spectrum[j] {
+                let elem = spectrum[j] - spectrum[i];
+                println!("{:?} {:?} {:?}", j, i, elem);
+                *map.entry(elem).or_insert(0) += 1;
+            }*/
+        }
+    }
+
+    let mut pairs: Vec<(usize, usize)> = map.into_iter().collect();
+    pairs.sort_by(|a, b| {
+        b.1.cmp(&a.1) // sort by value descending
+            .then_with(|| b.0.cmp(&a.0)) // tie-breaker: key descending
+    });
+
+    println!("pairs {:?}", pairs);
+
+    let result: Vec<usize> = pairs
+        .into_iter()
+        .flat_map(|(key, value)| std::iter::repeat(key).take(value))
+        .collect();
+
+    result
 }
