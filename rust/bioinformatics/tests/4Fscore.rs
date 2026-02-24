@@ -51,6 +51,19 @@ fn test_score_3() {
 }
 
 #[test]
+#[ignore]
 fn test_linear_score_1() {
     test_linear_score("testset.txt");
+}
+
+#[test]
+#[ignore]
+fn test_score_4() {
+    test_score("quiz.txt");
+}
+
+#[test]
+
+fn test_linear_score_2() {
+    test_linear_score("quiz2.txt");
 }

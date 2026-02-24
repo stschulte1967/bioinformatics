@@ -374,6 +374,10 @@ pub fn leaderboard_cyclopeptide_sequencing_2(spectrum: &Vec<usize>, n: usize) ->
 }
 
 pub fn leaderboard_cyclopeptide_sequencing_3(spectrum: &Vec<usize>, n: usize) -> Vec<Vec<usize>> {
+    leaderboard_cyclopeptide_sequencing_generic(spectrum, n, &(57..=200).collect())
+}
+
+pub fn leaderboard_cyclopeptide_sequencing_generic(spectrum: &Vec<usize>, n: usize, set_of_candidates: &Vec<usize>) -> Vec<Vec<usize>> {
     let parent_mass = spectrum.last().unwrap();
     let mut leader_peptides:Vec<Vec<usize>> = Vec::new();
     let mut score_leader = 0;
@@ -381,7 +385,7 @@ pub fn leaderboard_cyclopeptide_sequencing_3(spectrum: &Vec<usize>, n: usize) ->
     leaderboard.insert(vec![]);
     
     while !leaderboard.is_empty() {
-        leaderboard = expand(&leaderboard, (57..=200).collect());
+        leaderboard = expand(&leaderboard, set_of_candidates.to_vec());
         let mut next_candidates = leaderboard.clone();
         
         for peptide in &leaderboard {
@@ -389,13 +393,14 @@ pub fn leaderboard_cyclopeptide_sequencing_3(spectrum: &Vec<usize>, n: usize) ->
                 let score_peptide = score_masses(peptide.to_vec(), spectrum.to_vec());
                 if score_peptide > score_leader {
                     leader_peptides = vec![peptide.to_vec()];
-                    score_leader = score_masses(peptide.clone(), spectrum.to_vec());
+                    score_leader = score_peptide;
                 }
                 if score_peptide == score_leader {
                     if !leader_peptides.contains(peptide) {
                         leader_peptides.push(peptide.to_vec());
                     }
                 }
+                next_candidates.remove(peptide);
             } else {
                 if mass(peptide.to_vec()) > *parent_mass {
                     next_candidates.remove(peptide);
@@ -410,16 +415,18 @@ pub fn leaderboard_cyclopeptide_sequencing_3(spectrum: &Vec<usize>, n: usize) ->
 
 pub fn spectral_convolution(spectrum: Vec<usize>) -> Vec<usize> {
     let mut result: Vec<usize> = Vec::new();
-    let mut map: HashMap<usize,usize> = HashMap::new();  
-    let spectrum_size = spectrum.len();
-    for j in 1..spectrum_size {
-        for i in 0..spectrum_size {
-            println!("{:?} {:?} {:?} {:?}", i, j, &spectrum[i], &spectrum[j]);
-            /*if spectrum[i] < spectrum[j] {
-                let elem = spectrum[j] - spectrum[i];
-                println!("{:?} {:?} {:?}", j, i, elem);
+    let mut map: HashMap<usize,usize> = HashMap::new();
+    let mut sorted_spectrum = spectrum.clone();
+    sorted_spectrum.sort();
+    let spectrum_size = sorted_spectrum.len();
+    println!("spectrum {:?}", &sorted_spectrum);
+    for i in 1..spectrum_size {
+        for j in 0..i {
+            let elem = sorted_spectrum[i] - sorted_spectrum[j];
+            //println!("test {:?} {:?} {:?}", i, j, elem);
+            if elem > 0 {
                 *map.entry(elem).or_insert(0) += 1;
-            }*/
+            }
         }
     }
 
@@ -435,6 +442,53 @@ pub fn spectral_convolution(spectrum: Vec<usize>) -> Vec<usize> {
         .into_iter()
         .flat_map(|(key, value)| std::iter::repeat(key).take(value))
         .collect();
-
+    //println!("result {:?}", &result);
     result
 }
+
+pub fn spectral_convolution_top_m(spectrum: Vec<usize>, m:usize) -> Vec<usize> {
+    let mut result: Vec<usize> = Vec::new();
+    let mut map: HashMap<usize,usize> = HashMap::new();
+    let mut sorted_spectrum = spectrum.clone();
+    sorted_spectrum.sort();
+    let spectrum_size = sorted_spectrum.len();
+    println!("spectrum {:?}", &sorted_spectrum);
+    for i in 1..spectrum_size {
+        for j in 0..i {
+            let elem = sorted_spectrum[i] - sorted_spectrum[j];
+            //println!("test {:?} {:?} {:?}", i, j, elem);
+            if elem > 0 {
+                *map.entry(elem).or_insert(0) += 1;
+            }
+        }
+    }
+
+    let mut pairs: Vec<(usize, usize)> = map.into_iter().collect();
+    pairs.sort_by(|a, b| {
+        b.1.cmp(&a.1) // sort by value descending
+            .then_with(|| b.0.cmp(&a.0)) // tie-breaker: key descending
+    });
+    println!("pairs: {:?}", pairs);
+    let mut count = 0;
+    let mut i = 0;
+    while count < m && i < pairs.len() {
+        let amino_acid = pairs[i].0;
+        if amino_acid >= 57 && amino_acid <= 200 {
+            result.push(pairs[i].0);
+            count += 1;
+        }
+        i += 1;
+    }
+    println!("candidates: {:?}", result);
+    result
+}
+
+pub fn convolution_cyclopeptide_sequencing(m: usize, n: usize, spectrum: &Vec<usize>) -> Vec<Vec<usize>> {
+    let set_of_candidates = spectral_convolution_top_m(spectrum.to_vec(), m);
+    println!("candidates: {:?}", set_of_candidates);
+    leaderboard_cyclopeptide_sequencing_generic(spectrum, n, &set_of_candidates)
+}
+
+
+
+

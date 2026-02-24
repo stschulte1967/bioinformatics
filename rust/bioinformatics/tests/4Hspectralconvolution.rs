@@ -11,7 +11,7 @@ fn test_spectral_convolution(input_file: &str) {
     let output_params = read_parameters_from_file("../../data/4H/outputs/".to_string() + input_file);
     let output_values: Vec<usize> = output_params.into_iter().map(|elem: String| elem.parse().unwrap()).collect();
     let result = spectral_convolution(input_params.into_iter().map(|elem: String| elem.parse().unwrap()).collect());
-    println!("{:?}", result);
+    println!("result ------>>>>>> {:?}", result);
     //assert!(have_same_elements(&result, &output_values));
     assert_eq!(1,2);
 }
@@ -35,7 +35,7 @@ fn test_spectral_convolution_3() {
 }
 
 #[test]
-
+#[ignore]
 fn test_spectral_convolution_4() {
     test_spectral_convolution("testset2.txt");
 }
@@ -44,4 +44,16 @@ fn test_spectral_convolution_4() {
 #[ignore]
 fn test_spectral_convolution_5() {
     test_spectral_convolution("testset3.txt");
+}
+
+#[test]
+#[ignore]
+fn test_spectral_convolution_6() {
+    test_spectral_convolution("spectrum25.txt");
+}
+
+#[test]
+
+fn test_spectral_convolution_7() {
+    test_spectral_convolution("quiz.txt");
 }

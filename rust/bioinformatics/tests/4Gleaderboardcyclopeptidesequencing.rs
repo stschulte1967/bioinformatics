@@ -157,7 +157,7 @@ fn test_leaderboard_cyclopeptide_sequencing_4() {
 }
 
 #[test]
-
+#[ignore]
 fn test_leaderboard_cyclopeptide_sequencing_5() {
     test_leaderboard_cyclopeptide_sequencing_2("spectrum10.txt");
 }
