@@ -212,7 +212,7 @@ pub fn score(peptide:&String, spectrum: Vec<usize>) -> usize {
 
 pub fn score_masses(peptide:Vec<usize>, spectrum: Vec<usize>) -> usize {
     let peptide_spectrum = cyclo_spectrum(&peptide);
-    //println!("peptide_spectrum = {:?}", peptide_spectrum);
+    println!("peptide_spectrum = {:?}", peptide_spectrum);
     let mut correct_entries = 0;
     let mut j = 0;
     for (i, elem) in peptide_spectrum.iter().enumerate() {
@@ -221,6 +221,7 @@ pub fn score_masses(peptide:Vec<usize>, spectrum: Vec<usize>) -> usize {
         }
         if j < spectrum.len() && *elem == spectrum[j] {
             j = j + 1;
+            //println!("elem = {:?}", elem);
             correct_entries += 1;
         }
          
@@ -384,11 +385,14 @@ pub fn leaderboard_cyclopeptide_sequencing_generic(spectrum: &Vec<usize>, n: usi
     let mut leaderboard: HashSet<Vec<usize>> = HashSet::new();
     leaderboard.insert(vec![]);
     
+    println!("set_of_condidates: {:?}", &set_of_candidates);
+
     while !leaderboard.is_empty() {
         leaderboard = expand(&leaderboard, set_of_candidates.to_vec());
         let mut next_candidates = leaderboard.clone();
         
         for peptide in &leaderboard {
+            //println!("peptide {:?}", peptide);
             if mass(peptide.to_vec()) == *parent_mass {
                 let score_peptide = score_masses(peptide.to_vec(), spectrum.to_vec());
                 if score_peptide > score_leader {
@@ -400,7 +404,7 @@ pub fn leaderboard_cyclopeptide_sequencing_generic(spectrum: &Vec<usize>, n: usi
                         leader_peptides.push(peptide.to_vec());
                     }
                 }
-                next_candidates.remove(peptide);
+                //next_candidates.remove(peptide);
             } else {
                 if mass(peptide.to_vec()) > *parent_mass {
                     next_candidates.remove(peptide);
@@ -471,7 +475,7 @@ pub fn spectral_convolution_top_m(spectrum: Vec<usize>, m:usize) -> Vec<usize> {
     println!("pairs: {:?}", pairs);
     let mut count = 0;
     let mut i = 0;
-    while count < m && i < pairs.len() {
+    while count < m && i < pairs.len() || i < pairs.len() && pairs[i].1 == pairs[i-1].1 {
         let amino_acid = pairs[i].0;
         if amino_acid >= 57 && amino_acid <= 200 {
             result.push(pairs[i].0);

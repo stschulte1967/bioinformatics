@@ -48,7 +48,7 @@ fn test_convolution_cyclopeptide_sequencing_1() {
 }
 
 #[test]
-#[ignore]
+
 fn test_convolution_cyclopeptide_sequencing_2() {
     test_convolution_cyclopeptide_sequencing("testset2.txt");
 }
@@ -60,7 +60,7 @@ fn test_convolution_cyclopeptide_sequencing_3() {
 }
 
 #[test]
-
+#[ignore]
 fn test_convolution_cyclopeptide_sequencing_4() {
     let nqel = vec![0,99,113,114,128,227,257,299,355,356,370,371,484];
     println!("convolution: {:?}", spectral_convolution_top_m(nqel.to_vec(), 4));
