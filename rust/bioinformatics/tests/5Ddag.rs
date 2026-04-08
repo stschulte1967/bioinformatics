@@ -1,8 +1,5 @@
 use bioinformatics::compare::{dag_lcs};
-use bioinformatics::{read_parameters_from_file, have_same_elements};
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::collections::HashMap;
+use bioinformatics::{read_parameters_from_file};
 
 fn convert_vec_to_edges(input:&Vec<String>) -> Vec<(String, String, usize)> {
     let mut result:Vec<(String, String, usize)> = Vec::new();
@@ -26,55 +23,47 @@ fn test_dag(input_file: &str) {
 
 
 #[test]
-#[ignore]
 fn test_lcs_1() {
     test_dag("testset.txt");
 }
 
 #[test]
-#[ignore]
 fn test_lcs_2() {
     test_dag("testset2.txt");
 }
 
 #[test]
-#[ignore]
 fn test_lcs_3() {
     test_dag("testset3.txt");
 }
 
 #[test]
-#[ignore]
 fn test_lcs_4() {
     test_dag("testset4.txt");
 }
 
 #[test]
-#[ignore]
 fn test_lcs_5() {
     test_dag("testset5.txt");
 }
 
 #[test]
-#[ignore]
 fn test_lcs_6() {
     test_dag("testset6.txt");
 }
 
 #[test]
-#[ignore]
 fn test_lcs_7() {
     test_dag("testset7.txt");
 }
 
 #[test]
-
-fn test_lcs_98() {
+fn test_lcs_8() {
     test_dag("cogniterra.txt");
 }
 
 #[test]
 #[ignore]
-fn test_lcs_99() {
+fn test_lcs_9() {
     test_dag("rosalind.txt");
 }

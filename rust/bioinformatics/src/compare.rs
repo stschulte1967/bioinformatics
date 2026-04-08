@@ -137,10 +137,13 @@ pub fn lcs(s1: &String, s2: &String) -> String {
 
 fn dag_nodes(edges: Vec<(String, String, usize)>) -> HashMap<String, (usize, String)> {
     let mut nodes: HashMap<String,(usize, String)> = HashMap::new();
-    for (start, end, value) in edges {
+    let mut sorted_edges = edges.clone();
+    sorted_edges.sort_by(|a,b| a.0.parse::<usize>().unwrap().cmp(&(b.0.parse::<usize>().unwrap())));
+    println!("{:?}\n\n", &sorted_edges);
+    for (start, end, value) in sorted_edges {
         let start_value = nodes.get(&start).map(|(score, _)| *score).unwrap_or(0);
         let entry = nodes.entry(end.clone()).or_insert((0,"".to_string()));
-        if start_value + value >= entry.0 {
+        if start_value + value >  entry.0 {
             *entry = (start_value + value, start);
         }
     }
