@@ -111,7 +111,7 @@ pub fn cyclo_spectrum(amino_acid: &Vec<usize>) -> Vec<usize> {
 
 pub fn expand(peptides: &HashSet<Vec<usize>>, condon_masses: Vec<usize>) -> HashSet<Vec<usize>> {
     let mut new_peptides: HashSet<Vec<usize>> = HashSet::new();
-    for mut peptide in peptides {
+    for peptide in peptides {
         for condon in &condon_masses {
             let mut new_elem = peptide.clone();
             new_elem.push(*condon);
@@ -197,11 +197,11 @@ pub fn score(peptide:&String, spectrum: Vec<usize>) -> usize {
     println!("peptide_spectrum = {:?}", peptide_spectrum);
     let mut correct_entries = 0;
     let mut j = 0;
-    for (i, elem) in peptide_spectrum.iter().enumerate() {
-        while j < spectrum.len() && *elem > spectrum[j] {
+    for elem in peptide_spectrum {
+        while j < spectrum.len() && elem > spectrum[j] {
             j = j + 1;
         }
-        if j < spectrum.len() && *elem == spectrum[j] {
+        if j < spectrum.len() && elem == spectrum[j] {
             j = j + 1;
             correct_entries += 1;
         }
@@ -215,11 +215,11 @@ pub fn score_masses(peptide:Vec<usize>, spectrum: Vec<usize>) -> usize {
     println!("peptide_spectrum = {:?}", peptide_spectrum);
     let mut correct_entries = 0;
     let mut j = 0;
-    for (i, elem) in peptide_spectrum.iter().enumerate() {
-        while j < spectrum.len() && *elem > spectrum[j] {
+    for elem in peptide_spectrum {
+        while j < spectrum.len() && elem > spectrum[j] {
             j = j + 1;
         }
-        if j < spectrum.len() && *elem == spectrum[j] {
+        if j < spectrum.len() && elem == spectrum[j] {
             j = j + 1;
             //println!("elem = {:?}", elem);
             correct_entries += 1;
@@ -233,11 +233,11 @@ pub fn linear_score(peptide:&String, spectrum: Vec<usize>) -> usize {
     let peptide_spectrum = linear_spectrum(peptide);
     let mut correct_entries = 0;
     let mut j = 0;
-    for (i, elem) in peptide_spectrum.iter().enumerate() {
-        while j < spectrum.len() && *elem > spectrum[j] {
+    for elem in peptide_spectrum {
+        while j < spectrum.len() && elem > spectrum[j] {
             j = j + 1;
         }
-        if j < spectrum.len() && *elem == spectrum[j] {
+        if j < spectrum.len() && elem == spectrum[j] {
             j = j + 1;
             correct_entries += 1;
         }
@@ -250,11 +250,11 @@ pub fn linear_score_masses(peptide:&Vec<usize>, spectrum: Vec<usize>) -> usize {
     let peptide_spectrum = linear_spectrum_masses(peptide);
     let mut correct_entries = 0;
     let mut j = 0;
-    for (i, elem) in peptide_spectrum.iter().enumerate() {
-        while j < spectrum.len() && *elem > spectrum[j] {
+    for elem in peptide_spectrum {
+        while j < spectrum.len() && elem > spectrum[j] {
             j = j + 1;
         }
-        if j < spectrum.len() && *elem == spectrum[j] {
+        if j < spectrum.len() && elem == spectrum[j] {
             j = j + 1;
             correct_entries += 1;
         }
@@ -418,7 +418,6 @@ pub fn leaderboard_cyclopeptide_sequencing_generic(spectrum: &Vec<usize>, n: usi
 }
 
 pub fn spectral_convolution(spectrum: Vec<usize>) -> Vec<usize> {
-    let mut result: Vec<usize> = Vec::new();
     let mut map: HashMap<usize,usize> = HashMap::new();
     let mut sorted_spectrum = spectrum.clone();
     sorted_spectrum.sort();

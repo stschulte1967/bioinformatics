@@ -1,7 +1,11 @@
 use std::cmp;
+use std::collections::HashMap;
 
 pub fn dp_change(money: usize, coins:Vec<usize>) -> usize {
-    let mut min_num_of_coins:Vec<usize> = vec![0];
+    let mut min_num_of_coins:Vec<usize> = Vec::with_capacity(money+1);
+    for _ in 0..=money {
+      min_num_of_coins.push(0);  
+    }
     for m in 1..=money {
         let mut temp = usize::MAX;
         for i in 0..coins.len() {
@@ -12,9 +16,42 @@ pub fn dp_change(money: usize, coins:Vec<usize>) -> usize {
                 }
             }
         }
-        min_num_of_coins.push(temp);
+        min_num_of_coins[m]=temp;
     }
     min_num_of_coins[money] 
+}
+
+pub fn dp_change_mem_optimized(money: usize, coins:Vec<usize>) -> (usize,Vec<usize>) {
+    let biggest_coin = coins[0];
+    let mut min_num_of_coins:Vec<usize> = Vec::with_capacity(biggest_coin);
+    let mut selected_coins: Vec<usize> = Vec::new();
+    for _ in 0..biggest_coin {
+      min_num_of_coins.push(0);  
+    }
+    min_num_of_coins[0]=0;
+ 
+    for m in 1..=money {
+        let mut temp = usize::MAX;
+        let mut selected_coin = usize::MAX;
+        for i in 0..coins.len() {
+            let coin = coins[i];
+            if m >= coin {
+                if min_num_of_coins[(m-coin)%biggest_coin] + 1 < temp {
+                    temp = min_num_of_coins[(m-coin)%biggest_coin] + 1;
+                    selected_coin = coin;
+                }
+            }
+        }
+        selected_coins.push(selected_coin);
+        min_num_of_coins[m%biggest_coin]=temp;
+    }
+    let mut i:i64 = money as i64 -1;
+    let mut result_coins:Vec<usize> = Vec::new();
+    while i >= 0 {
+        result_coins.push(selected_coins[i as usize]);
+        i = i - selected_coins[i as usize] as i64;
+    }
+    (min_num_of_coins[money%biggest_coin], result_coins)  
 }
 
 pub fn manhattan_tourist(n:usize, m:usize, down:&Vec<Vec<usize>>, right:&Vec<Vec<usize>>) -> usize {
@@ -98,19 +135,33 @@ pub fn lcs(s1: &String, s2: &String) -> String {
     output_lcs(&backtracking, s1, s1.len(), s2.len())
 }
 
-pub fn topological_ordering(graph: Vec<(String, String, usize)>, start_node: String, end_node: String) -> Vec<String> {
-    let mut g = graph.clone();
-    let mut result: Vec<String> = Vec::new();
-    let mut candidates: Vec<String> = vec![start_node];
-    while candidates.len() > 0 {
-        let a = candidates[0];
-        candidates.remove(0);
-        list.push(a);
-        for elem in g.filter(|x| x.0 == a).collect() {
-            g.remove(elem);;
-            if in_v(g, elem.1) == 0 {
-                candidates.push(elem.1)
-            }          
+fn dag_nodes(edges: Vec<(String, String, usize)>) -> HashMap<String, (usize, String)> {
+    let mut nodes: HashMap<String,(usize, String)> = HashMap::new();
+    for (start, end, value) in edges {
+        let start_value = nodes.get(&start).map(|(score, _)| *score).unwrap_or(0);
+        let entry = nodes.entry(end.clone()).or_insert((0,"".to_string()));
+        if start_value + value >= entry.0 {
+            *entry = (start_value + value, start);
         }
     }
+    nodes
 }
+
+fn dag_backtrack(start: &String, end: &String, nodes: HashMap<String, (usize, String)>) -> (usize, Vec<String>) {
+    let final_node=nodes.get(end);
+    let lcd = final_node.unwrap().0;
+    let mut current_node = final_node.clone();
+    let mut path: Vec<String> = vec![end.to_string()];
+    while current_node.unwrap().1 != *start {
+        path.push(current_node.unwrap().1.clone());
+        current_node = Some(nodes.get(&current_node.unwrap().1).unwrap());        
+    }
+    path.push(current_node.unwrap().1.clone());
+    (lcd,path.into_iter().rev().collect())
+}
+
+pub fn dag_lcs(start: &String, end: &String, edges: Vec<(String, String, usize)>) -> (usize, Vec<String>) {
+    let nodes:HashMap<String, (usize, String)> = dag_nodes(edges);
+    println!("Fix {:?}", nodes);
+    dag_backtrack(start, end, nodes)
+} 

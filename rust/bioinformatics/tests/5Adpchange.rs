@@ -1,4 +1,4 @@
-use bioinformatics::compare::{dp_change};
+use bioinformatics::compare::{dp_change, dp_change_mem_optimized};
 use bioinformatics::{read_parameters_from_file, have_same_elements};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -9,9 +9,10 @@ use std::collections::HashMap;
 fn test_dpchange(input_file: &str) {
     let input_params = read_parameters_from_file("../../data/5A/inputs/".to_string() + input_file);
     let output_params = read_parameters_from_file("../../data/5A/outputs/".to_string() + input_file);
-    let result = dp_change(input_params[0].parse().unwrap(),input_params[1..].into_iter().map(|elem: &String| elem.parse().unwrap()).collect());
-    println!("result ------>>>>>> {:?}", result);
+    let (result, coins) = dp_change_mem_optimized(input_params[0].parse().unwrap(),input_params[1..].into_iter().map(|elem: &String| elem.parse().unwrap()).collect());
+    println!("result ------>>>>>> {:?} coins --> {:?}", result, coins);
     assert_eq!(result, output_params[0].parse().unwrap());
+    assert_eq!(coins.into_iter().sum::<usize>(), input_params[0].parse().unwrap());
 }
 
 

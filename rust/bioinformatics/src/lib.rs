@@ -6,7 +6,7 @@ use rand::prelude::*;
 use rand::distr::weighted::WeightedIndex;
 use rand::distr::Distribution;
 use rand::seq::IteratorRandom;
-use rand::thread_rng;
+use rand::rng;
 
 pub mod common;
 pub mod replicationorigin;
@@ -573,12 +573,9 @@ pub fn motifs(profile: Vec<HashMap<char,f32>>, dna: Vec<String> ) -> Vec<String>
     result
 }
 
-pub fn randomized_motif_search(dna: Vec<String>, k: usize, t: usize) -> Vec<String> {
-    let n = &dna[0].len();
-    let no_of_motifs_in_dna = n - k + 1;
+pub fn randomized_motif_search(dna: Vec<String>, k: usize, _t: usize) -> Vec<String> {
     let mut motifs_val = generate_random_motif(&dna, k);
-    let mut best_motifs: Vec<String> = Vec::new();
-    best_motifs = motifs_val.clone();
+    let mut best_motifs: Vec<String> = motifs_val.clone();
     //println!("{:?}", &best_motifs);
     loop {
         let prof = profile_with_pseudocount(motifs_val);
@@ -593,7 +590,7 @@ pub fn randomized_motif_search(dna: Vec<String>, k: usize, t: usize) -> Vec<Stri
 }
 
 pub fn random_number(n: usize) -> usize {
-     rand::rng().gen_range(0..n)
+     rand::rng().random_range(0..n)
 }
 
 pub fn random(p:Vec<f32>) -> usize {
@@ -744,7 +741,7 @@ pub fn paired_de_bruijn(kmers: Vec<String>) ->  HashMap<String, Vec<String>> {
 pub fn eulerian_cycle(mut map: HashMap<String, Vec<String>>) -> Vec<String> {
     let mut path: Vec<String>= Vec::new();
     let mut keys_with_exit:HashSet<String> = HashSet::new();
-    let mut keys: Vec<String> = Vec::new();
+    let mut keys: Vec<String>;
     let mut no_of_keys;
     let mut start_key: String; 
     loop {
@@ -754,7 +751,7 @@ pub fn eulerian_cycle(mut map: HashMap<String, Vec<String>>) -> Vec<String> {
             start_key = keys[random_number(no_of_keys)].to_string();
             path.push(start_key.clone());
         } else {
-            start_key = keys_with_exit.iter().choose(&mut thread_rng()).unwrap().clone();
+            start_key = keys_with_exit.iter().choose(&mut rng()).unwrap().clone();
             let pos = path.iter().position(|r| *r == start_key).unwrap();
             path.rotate_left(pos);
             path.push(start_key.clone());
@@ -903,15 +900,14 @@ pub fn string_spelled_by_patterns(patterns: &Vec<String>) -> String {
     let mut part2: String = patterns.last().unwrap().to_string();
     let part1_length = s.len();
     let part2_length = part2.len();
-    let requiredLen = k + n - 1;
-    if part1_length + part2_length > requiredLen {
+    let required_len = k + n - 1;
+    if part1_length + part2_length > required_len {
         part2 = part2[k-n+1..].to_string();
     }
     format!("{}{}",s,part2)
 }
 
 pub fn string_spelled_by_gapped_patterns(k: usize, d: usize, patterns: &Vec<String>) -> String {
-    let n = patterns.len();
     let mut initials: Vec<String> = Vec::new();
     let mut terminals: Vec<String> = Vec::new();
     for elem in patterns {
