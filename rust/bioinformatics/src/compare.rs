@@ -167,4 +167,73 @@ pub fn dag_lcs(start: &String, end: &String, edges: Vec<(String, String, usize)>
     let nodes:HashMap<String, (usize, String)> = dag_nodes(edges);
     println!("Fix {:?}", nodes);
     dag_backtrack(start, end, nodes)
-} 
+}
+
+
+pub fn lcs_with_score(reward: i64, mismatch_penalty: i64, indel_penalty: i64, s1: &String, s2: &String) -> (i64, String, String) {
+    let backtracking = lcs_back_tracking_with_score(reward, mismatch_penalty, indel_penalty, s1, s2);
+    println!("Backtracking =  {:?}", backtracking);
+    output_lcs_both_strings(0,&backtracking, s1, s2, s1.len(), s2.len())
+}
+
+pub fn lcs_back_tracking_with_score(reward: i64, mismatch_penalty: i64, indel_penalty: i64, v: &String, w: &String) -> Vec<Vec<i64>> {
+    let v_chars: Vec<char> = v.chars().collect();
+    let w_chars: Vec<char> = w.chars().collect();
+    let len_v = v_chars.len() + 1;
+    let len_w = w_chars.len() + 1;
+    let mut s:Vec<Vec<i64>> = vec![vec![98;len_w];len_v];
+    let mut backtracking:Vec<Vec<i64>> = vec![vec![99;len_w];len_v];
+
+    for i in 0..len_v {
+        s[i][0] = -indel_penalty;
+    }
+    for j in 0..len_w {
+        s[0][j] = -indel_penalty;
+    }
+    s[0][0] = 0;
+    for i in 1..len_v {
+        for j in 1..len_w {
+            let matching:i64;
+            if v_chars[i-1] == w_chars[j-1] {
+                matching = reward;
+            } else {
+                matching = - mismatch_penalty
+            }
+            s[i][j] = cmp::max(cmp::max(s[i-1][j] - indel_penalty, s[i][j-1] - indel_penalty), s[i-1][j-1] + matching);
+            if s[i][j] == s[i-1][j] - indel_penalty{
+                backtracking[i][j] = 0;
+            } else {
+                if s[i][j] == s[i][j-1] - indel_penalty{
+                    backtracking[i][j] = 1;
+                } else {
+                    if s[i][j] == s[i-1][j-1] + matching {
+                        backtracking[i][j] = 2;
+                    }
+                }
+            }
+        }
+    }
+    for j in 0..len_v {
+        for i in 0..len_w {
+            print!("{:6}", s[j][i]);
+        }
+        println!("");
+    }
+    backtracking
+}
+
+pub fn output_lcs_both_strings(lcs: i64, backtrack: &Vec<Vec<i64>>, s1: &String, s2:&String, i:usize, j:usize) -> (i64, String, String) {
+    /*if i == 0 || j == 0 {
+        return (lcs, "".to_string(), "".to_string();
+    }
+    if backtrack[i][j] == 0 {
+        return output_lcs(backtrack, v, i-1, j);
+    } else {
+        if backtrack[i][j] == 1 { 
+            return output_lcs(backtrack, v, i,j-1);
+        } else {
+            return output_lcs(backtrack, v, i-1, j-1) + &v.chars().nth(i-1).unwrap().to_string();
+        }
+    }*/
+    (1,"".to_string(),"".to_string())
+}
