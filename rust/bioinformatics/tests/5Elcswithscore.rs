@@ -10,7 +10,7 @@ fn test_lcs(input_file: &str) {
     let input_params = read_parameters_from_file("../../data/5E/inputs/".to_string() + input_file);
     let output_params = read_parameters_from_file("../../data/5E/outputs/".to_string() + input_file);
     let (lcs, r1, r2) = lcs_with_score(input_params[0].parse().unwrap(), input_params[1].parse().unwrap(),input_params[2].parse().unwrap(), &input_params[3],&input_params[4]);
-    println!("result ------>>>>>> {}\n{:?}\n{:?}", lcs, r1, r2);
+    println!("result ------>>>>>>>  {}\n{:?}\n{:?}", lcs, r1, r2);
     assert_eq!(lcs, output_params[0].parse().unwrap());
     assert_eq!(r1, output_params[1]);
     assert_eq!(r2, output_params[2]);
@@ -23,19 +23,43 @@ fn test_lcs_1() {
 }
 
 #[test]
-#[ignore]
 fn test_lcs_2() {
     test_lcs("testset2.txt");
 }
 
 #[test]
-#[ignore]
 fn test_lcs_3() {
+    test_lcs("testset3.txt");
+}
+
+#[test]
+fn test_lcs_4() {
+    test_lcs("testset4.txt");
+}
+
+#[test]
+fn test_lcs_5() {
+    test_lcs("testset5.txt");
+}
+
+#[test]
+fn test_lcs_6() {
+    test_lcs("testset6.txt");
+}
+
+#[test]
+fn test_lcs_7() {
+    test_lcs("testset7.txt");
+}
+
+#[test]
+#[ignore]
+fn test_lcs_8() {
     test_lcs("rosalind.txt");
 }
 
 #[test]
 #[ignore]
-fn test_lcs_4() {
+fn test_lcs_9() {
     test_lcs("cogniterra.txt");
 }
