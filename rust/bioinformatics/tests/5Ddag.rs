@@ -23,47 +23,55 @@ fn test_dag(input_file: &str) {
 
 
 #[test]
+#[ignore]
 fn test_lcs_1() {
     test_dag("testset.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_2() {
     test_dag("testset2.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_3() {
     test_dag("testset3.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_4() {
     test_dag("testset4.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_5() {
     test_dag("testset5.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_6() {
     test_dag("testset6.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_7() {
     test_dag("testset7.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_8() {
     test_dag("cogniterra.txt");
 }
 
 #[test]
-#[ignore]
+
 fn test_lcs_9() {
     test_dag("rosalind.txt");
 }

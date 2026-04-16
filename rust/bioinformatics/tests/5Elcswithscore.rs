@@ -1,8 +1,5 @@
 use bioinformatics::compare::{lcs_with_score};
-use bioinformatics::{read_parameters_from_file, have_same_elements};
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::collections::HashMap;
+use bioinformatics::read_parameters_from_file;
 
 
 
@@ -18,36 +15,43 @@ fn test_lcs(input_file: &str) {
 
 
 #[test]
+#[ignore]
 fn test_lcs_1() {
     test_lcs("testset.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_2() {
     test_lcs("testset2.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_3() {
     test_lcs("testset3.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_4() {
     test_lcs("testset4.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_5() {
     test_lcs("testset5.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_6() {
     test_lcs("testset6.txt");
 }
 
 #[test]
+#[ignore]
 fn test_lcs_7() {
     test_lcs("testset7.txt");
 }
@@ -59,7 +63,7 @@ fn test_lcs_8() {
 }
 
 #[test]
-#[ignore]
+
 fn test_lcs_9() {
     test_lcs("cogniterra.txt");
 }

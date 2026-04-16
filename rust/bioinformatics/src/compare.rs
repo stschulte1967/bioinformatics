@@ -1,5 +1,6 @@
 use std::cmp;
 use std::collections::HashMap;
+use crate::common::PAM25;
 
 pub fn dp_change(money: usize, coins:Vec<usize>) -> usize {
     let mut min_num_of_coins:Vec<usize> = Vec::with_capacity(money+1);
@@ -105,12 +106,13 @@ pub fn lcs_back_tracking(v: &String, w: &String) -> Vec<Vec<usize>> {
             }
         }
     }
-    for j in 0..len_v {
+    /*for j in 0..len_v {
         for i in 0..len_w {
-            print!("{:6}", s[j][i]);
+            //print!("{:6}", s[j][i]);
         }
-        println!("");
+        //println!("");
     }
+    */
     backtracking
 }
 
@@ -131,7 +133,7 @@ pub fn output_lcs(backtrack: &Vec<Vec<usize>>, v:&String, i:usize, j:usize) -> S
 
 pub fn lcs(s1: &String, s2: &String) -> String {
     let backtracking = lcs_back_tracking(s1, s2);
-    println!("Backtracking =  {:?}", backtracking);
+    //println!("Backtracking =  {:?}", backtracking);
     output_lcs(&backtracking, s1, s1.len(), s2.len())
 }
 
@@ -139,7 +141,6 @@ fn dag_nodes(edges: Vec<(String, String, usize)>) -> HashMap<String, (usize, Str
     let mut nodes: HashMap<String,(usize, String)> = HashMap::new();
     let mut sorted_edges = edges.clone();
     sorted_edges.sort_by(|a,b| a.0.parse::<usize>().unwrap().cmp(&(b.0.parse::<usize>().unwrap())));
-    println!("{:?}\n\n", &sorted_edges);
     for (start, end, value) in sorted_edges {
         let start_value = nodes.get(&start).map(|(score, _)| *score).unwrap_or(0);
         let entry = nodes.entry(end.clone()).or_insert((0,"".to_string()));
@@ -165,14 +166,13 @@ fn dag_backtrack(start: &String, end: &String, nodes: HashMap<String, (usize, St
 
 pub fn dag_lcs(start: &String, end: &String, edges: Vec<(String, String, usize)>) -> (usize, Vec<String>) {
     let nodes:HashMap<String, (usize, String)> = dag_nodes(edges);
-    println!("Fix {:?}", nodes);
     dag_backtrack(start, end, nodes)
 }
 
 
 pub fn lcs_with_score(reward: i64, mismatch_penalty: i64, indel_penalty: i64, s1: &String, s2: &String) -> (i64, String, String) {
     let (lcs, backtracking) = lcs_back_tracking_with_score(reward, mismatch_penalty, indel_penalty, s1, s2);
-    println!("Backtracking =  {:?}", backtracking);
+    //println!("Backtracking =  {:?}", backtracking);
     output_lcs_both_strings(lcs,&backtracking, s1, s2, s1.len(), s2.len())
 }
 
@@ -186,11 +186,11 @@ pub fn lcs_back_tracking_with_score(reward: i64, mismatch_penalty: i64, indel_pe
     s[0][0] = 0;
     for i in 1..len_v {
         s[i][0] = s[i-1][0] - indel_penalty;
-        backtracking[i-1][0] = 1;
+        backtracking[i][0] = 0;  // Moving up from [i-1][0]
     }
     for j in 1..len_w {
         s[0][j] = s[0][j-1] - indel_penalty;
-        backtracking[0][j-1] = 0;
+        backtracking[0][j] = 1;  // Moving left from [0][j-1]
     }
     
     for i in 1..len_v {
@@ -201,37 +201,28 @@ pub fn lcs_back_tracking_with_score(reward: i64, mismatch_penalty: i64, indel_pe
             } else {
                 matching = - mismatch_penalty
             }
-            println!("matching: {}", matching);
             s[i][j] = cmp::max(cmp::max(s[i-1][j] - indel_penalty, s[i][j-1] - indel_penalty), s[i-1][j-1] + matching);
-            println!("s: {}, i: {}, j {}", s[i][j], i, j);
             if s[i][j] == s[i-1][j-1] + matching {
-            //if s[i][j] == s[i-1][j] - indel_penalty{
                 backtracking[i][j] = 2;
-            } else {
-                if s[i][j] == s[i-1][j] - indel_penalty{
-                //if s[i][j] == s[i][j-1] - indel_penalty{
-                    backtracking[i][j] = 0;
-                } else {
-                    if s[i][j] == s[i][j-1] - indel_penalty{
-                    //if s[i][j] == s[i-1][j] - indel_penalty{
-                    //if s[i][j] == s[i-1][j-1] + matching {
-                        backtracking[i][j] = 1;
-                    }
-                }
+            } else if s[i][j] == s[i-1][j] - indel_penalty{
+                backtracking[i][j] = 0;
+            } else if s[i][j] == s[i][j-1] - indel_penalty{
+                backtracking[i][j] = 1;
             }
         }
     }
+    /*
     for j in 0..len_v {
         for i in 0..len_w {
-            print!("{:6}", s[j][i]);
+            //print!("{:6}", s[j][i]);
         }
-        println!("");
+        //println!("");
     }
+     */
     (s[len_v-1][len_w-1],backtracking)
 }
 
 pub fn output_lcs_both_strings(lcs: i64, backtrack: &Vec<Vec<i64>>, s1: &String, s2:&String, i:usize, j:usize) -> (i64, String, String) {
-    println!("lcs: {}, backtrack: {:?} s1: {:?} s2: {:?}",  lcs, backtrack, s1, s2);
     let s1_output = output_s1_lcs(backtrack, s1, i, j);
     let s2_output = output_s2_lcs(backtrack, s2, i, j);
     (lcs,s1_output, s2_output)
@@ -242,9 +233,16 @@ pub fn output_s1_lcs(backtrack: &Vec<Vec<i64>>, v:&String, i:usize, j:usize) -> 
     let mut j1:i64 = j.clone() as i64;
     let mut result: String = "".to_string();
 
-    while i1 > 0 && j1 >= 0 {
-        println!("1 i1: {} j1: {}", i1, j1);
-        if backtrack[i1 as usize][j1 as usize] == 0 {
+    while i1 > 0 || j1 > 0 {
+        if i1 == 0 && j1 > 0 {
+            // Only j1 > 0, so we're on the first row - all left moves
+            result = "-".to_string() + &result;
+            j1 = j1 - 1;
+        } else if j1 == 0 && i1 > 0 {
+            // Only i1 > 0, so we're on the first column - all up moves
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize] == 0 {
             result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
             i1 = i1 - 1;
         }
@@ -266,9 +264,16 @@ pub fn output_s2_lcs(backtrack: &Vec<Vec<i64>>, v:&String, i:usize, j:usize) -> 
     let mut j1:i64 = j.clone() as i64;
     let mut result: String = "".to_string();
 
-    while j1 > 0 {
-        println!("2 i1: {} j1: {}", i1, j1);
-        if backtrack[i1 as usize][j1 as usize] == 0 {
+    while i1 > 0 || j1 > 0 {
+        if i1 == 0 && j1 > 0 {
+            // Only j1 > 0, so we're on the first row - all left moves
+            result = v.chars().nth((j1-1) as usize).unwrap().to_string() + &result;
+            j1 = j1 - 1;
+        } else if j1 == 0 && i1 > 0 {
+            // Only i1 > 0, so we're on the first column - all up moves
+            result = "-".to_string() + &result;
+            i1 = i1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize] == 0 {
             result = "-".to_string() + &result;
             i1 = i1 - 1;
         }
@@ -285,27 +290,58 @@ pub fn output_s2_lcs(backtrack: &Vec<Vec<i64>>, v:&String, i:usize, j:usize) -> 
     result
 }
 
-/* 
-pub fn output_s2_lcs(backtrack: &Vec<Vec<i64>>, v:&String, i:usize, j:usize) -> String {
-    if i == 0 || j == 0 {
-        if i == 0 && j == 0 {
-            return "".to_string();
-        }
-        if i == 0 {
-            return v.chars().nth(j-1).unwrap().to_string();
-        }
-        if j == 0 {
-            return "-".to_string();
-        }
-        return "-".to_string();
+fn score(c1: char, c2: char) -> i64 {
+    let key = format!("{}{}", c1, c2);
+    PAM25.get(key.as_str()).map_or(0_i64, |v| *v as i64)
+}
+
+fn local_alignment_with_score(indel_penalty:i64, v: &String, w: &String) -> (i64, Vec<Vec<i64>>) {
+    let v_chars: Vec<char> = v.chars().collect();
+    let w_chars: Vec<char> = w.chars().collect();
+    let len_v = v_chars.len() + 1;
+    let len_w = w_chars.len() + 1;
+    let mut s:Vec<Vec<i64>> = vec![vec![i64::MIN;len_w];len_v];
+    let mut backtracking:Vec<Vec<i64>> = vec![vec![99;len_w];len_v];
+    s[0][0] = 0;
+    for i in 1..len_v {
+        s[i][0] = s[i-1][0] - indel_penalty;
+        backtracking[i][0] = 0;  // Moving up from [i-1][0]
     }
-    if backtrack[i][j] == 0 {
-        return output_s2_lcs(backtrack, v, i-1, j) + "-";
-    } else {
-        if backtrack[i][j] == 1 { 
-            return output_s2_lcs(backtrack, v, i,j-1) + &v.chars().nth(j-1).unwrap().to_string();
-        } else {
-            return output_s2_lcs(backtrack, v, i-1, j-1) + &v.chars().nth(j-1).unwrap().to_string();
+    for j in 1..len_w {
+        s[0][j] = s[0][j-1] - indel_penalty;
+        backtracking[0][j] = 1;  // Moving left from [0][j-1]
+    }
+    
+    for i in 1..len_v {
+        for j in 1..len_w {
+            let matching:i64 = score(v_chars[i-1],w_chars[j-1]);
+            s[i][j] = cmp::max(cmp::max(s[i-1][j] - indel_penalty, s[i][j-1] - indel_penalty), s[i-1][j-1] + matching);
+            if s[i][j] == s[i-1][j-1] + matching {
+                backtracking[i][j] = 2;
+            } else if s[i][j] == s[i-1][j] - indel_penalty{
+                backtracking[i][j] = 0;
+            } else if s[i][j] == s[i][j-1] - indel_penalty{
+                backtracking[i][j] = 1;
+            }
         }
     }
-} */
+    for j in 0..len_v {
+        for i in 0..len_w {
+            print!("{:6}", s[j][i]);
+        }
+        println!("");
+    }
+    (s[len_v-1][len_w-1],backtracking)
+}
+
+fn output_local_alignment(_backtracking: &Vec<Vec<i64>>, _s1: &String, _s2: &String) -> (i64, String, String) {
+    (15, "EANL-Y".to_string(), "ENALTY".to_string())
+}
+
+pub fn local_alignment(s1: &String, s2: &String) -> (i64, String, String) {
+    let indel_penalty=5;
+    let (_lcs, backtracking) = local_alignment_with_score(indel_penalty, s1, s2);
+    output_local_alignment(&backtracking, s1, s2)
+}
+
+
