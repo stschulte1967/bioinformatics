@@ -254,6 +254,8 @@ pub fn output_s1_lcs(backtrack: &Vec<Vec<i64>>, v:&String, i:usize, j:usize) -> 
             result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
             i1 = i1 - 1;
             j1 = j1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize] == 3 {
+            return result;
         }
     }
     result
@@ -285,6 +287,8 @@ pub fn output_s2_lcs(backtrack: &Vec<Vec<i64>>, v:&String, i:usize, j:usize) -> 
             result = v.chars().nth((j1-1) as usize).unwrap().to_string() + &result;
             i1 = i1 - 1;
             j1 = j1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize] == 3 {
+            return result;
         }
     }
     result
@@ -295,7 +299,7 @@ fn score(c1: char, c2: char) -> i64 {
     PAM25.get(key.as_str()).map_or(0_i64, |v| *v as i64)
 }
 
-fn local_alignment_with_score(indel_penalty:i64, v: &String, w: &String) -> (i64, Vec<Vec<i64>>) {
+fn local_alignment_with_score(indel_penalty:i64, v: &String, w: &String) -> (i64, Vec<Vec<i64>>, (usize, usize, i64)) {
     let v_chars: Vec<char> = v.chars().collect();
     let w_chars: Vec<char> = w.chars().collect();
     let len_v = v_chars.len() + 1;
@@ -304,44 +308,93 @@ fn local_alignment_with_score(indel_penalty:i64, v: &String, w: &String) -> (i64
     let mut backtracking:Vec<Vec<i64>> = vec![vec![99;len_w];len_v];
     s[0][0] = 0;
     for i in 1..len_v {
-        s[i][0] = s[i-1][0] - indel_penalty;
+        s[i][0] = 0;
         backtracking[i][0] = 0;  // Moving up from [i-1][0]
     }
     for j in 1..len_w {
-        s[0][j] = s[0][j-1] - indel_penalty;
+        s[0][j] = 0;
         backtracking[0][j] = 1;  // Moving left from [0][j-1]
     }
-    
+    let mut max_i = 0;
+    let mut max_j = 0;
+    let mut max_value = 0;
+
     for i in 1..len_v {
         for j in 1..len_w {
             let matching:i64 = score(v_chars[i-1],w_chars[j-1]);
-            s[i][j] = cmp::max(cmp::max(s[i-1][j] - indel_penalty, s[i][j-1] - indel_penalty), s[i-1][j-1] + matching);
+            s[i][j] = cmp::max(0,cmp::max(cmp::max(s[i-1][j] - indel_penalty, s[i][j-1] - indel_penalty), s[i-1][j-1] + matching));
             if s[i][j] == s[i-1][j-1] + matching {
                 backtracking[i][j] = 2;
+                if s[i][j] > max_value {
+                    max_i = i;
+                    max_j = j;
+                    max_value = s[i][j];
+                }
             } else if s[i][j] == s[i-1][j] - indel_penalty{
                 backtracking[i][j] = 0;
             } else if s[i][j] == s[i][j-1] - indel_penalty{
                 backtracking[i][j] = 1;
-            }
+            } else if s[i][j] == 0 {
+                backtracking[i][j] = 3;
+            } else { backtracking [i][j] = 4;}
         }
     }
     for j in 0..len_v {
         for i in 0..len_w {
-            print!("{:6}", s[j][i]);
+            print!("({:6},{:6})", s[j][i], backtracking[j][i]);
         }
         println!("");
     }
-    (s[len_v-1][len_w-1],backtracking)
+    (s[len_v-1][len_w-1],backtracking, (max_i, max_j, max_value))
 }
 
-fn output_local_alignment(_backtracking: &Vec<Vec<i64>>, _s1: &String, _s2: &String) -> (i64, String, String) {
-    (15, "EANL-Y".to_string(), "ENALTY".to_string())
+fn output_local_alignment(backtracking: &Vec<Vec<i64>>, s1: &String, s2: &String, i: usize, j: usize, lcs: i64) -> (i64, String, String) {
+    (lcs, output_s1_lcs(&backtracking, s1, i, j), output_s2_lcs(&backtracking, s2, i, j))
 }
 
 pub fn local_alignment(s1: &String, s2: &String) -> (i64, String, String) {
     let indel_penalty=5;
-    let (_lcs, backtracking) = local_alignment_with_score(indel_penalty, s1, s2);
-    output_local_alignment(&backtracking, s1, s2)
+    let (_lcs, backtracking, (max_i, max_j, lcs)) = local_alignment_with_score(indel_penalty, s1, s2);
+    println!("{},{},{}", max_i, max_j, lcs);
+    output_local_alignment(&backtracking, s1, s2, max_i, max_j, lcs)
 }
+
+pub fn edit_distance(v: &String, w: &String) -> i64 {
+    let v_chars: Vec<char> = v.chars().collect();
+    let w_chars: Vec<char> = w.chars().collect();
+    let len_v = v_chars.len() + 1;
+    let len_w = w_chars.len() + 1;
+    let mut s:Vec<Vec<i64>> = vec![vec![98;len_w];len_v];
+    let mut backtracking:Vec<Vec<usize>> = vec![vec![99;len_w];len_v];
+    let indel_penalty:i64 = -1;
+    let mismatch_penalty:i64 = -1;
+    let reward:i64 = 0;
+    s[0][0] = 0;
+    for i in 1..len_v {
+        s[i][0] = s[i-1][0] + indel_penalty;
+    }
+    for j in 1..len_w {
+        s[0][j] = s[0][j-1] + indel_penalty;
+    }
+    for i in 1..len_v {
+        for j in 1..len_w {
+            let mut matching:i64 = mismatch_penalty;
+            if v_chars[i-1] == w_chars[j-1] {
+                matching = reward;
+            }
+            s[i][j] = cmp::max(cmp::max(s[i-1][j] + indel_penalty, s[i][j-1] + indel_penalty), s[i-1][j-1] + matching);
+        }
+    }
+    /*for j in 0..len_v {
+        for i in 0..len_w {
+            print!("{:6}", s[j][i]);
+        }
+        println!("");
+    }*/
+    
+    -s[len_v-1][len_w-1]
+}
+
+
 
 

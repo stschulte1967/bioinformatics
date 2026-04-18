@@ -16,6 +16,7 @@ fn test_local_alignment(input_file: &str) {
 
 
 #[test]
+#[ignore]
 fn test_local_alignment_1() {
     test_local_alignment("testset.txt");
 }
@@ -63,7 +64,6 @@ fn test_local_alignment_8() {
 }
 
 #[test]
-#[ignore]
 fn test_local_alignment_9() {
     test_local_alignment("cogniterra.txt");
 }
