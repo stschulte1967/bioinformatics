@@ -1,9 +1,6 @@
 use bioinformatics::compare::{local_alignment};
 use bioinformatics::read_parameters_from_file;
 
-
-
-
 fn test_local_alignment(input_file: &str) {
     let input_params = read_parameters_from_file("../../data/5F/inputs/".to_string() + input_file);
     let output_params = read_parameters_from_file("../../data/5F/outputs/".to_string() + input_file);
