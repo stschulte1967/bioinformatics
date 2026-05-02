@@ -606,7 +606,7 @@ pub fn middle_edge(v: &String, w: &String, indel_penalty: i64, mismatch_penalty:
         }
     }
     
-    if (middle_row[(max_middle_row_pos+1)%2] > max_middle_row_plus_1) {
+    if middle_row[(max_middle_row_pos+1)%2] > max_middle_row_plus_1 {
         middle_plus_1 = middle;
         max_middle_row_pos_plus_1 = max_middle_row_pos+1;
     }
@@ -614,4 +614,253 @@ pub fn middle_edge(v: &String, w: &String, indel_penalty: i64, mismatch_penalty:
     (max_middle_row_pos,middle,max_middle_row_pos_plus_1,middle_plus_1)
 }
 
+pub fn linear_space_alignment(reward: i64, mismatch: i64, indel: i64, s1: &String, s2: &String) -> (i64, String, String) {
+    let (lcs, backtracking) = lcs_back_tracking_with_score(reward, mismatch, indel, s1, s2);
+    output_lcs_both_strings(lcs, &backtracking, s1, s2, s1.len(), s2.len())
+}
 
+pub fn lcs3(v: &String, w: &String, x: &String) -> (i64, String, String, String) {
+    let v_chars: Vec<char> = v.chars().collect();
+    let w_chars: Vec<char> = w.chars().collect();
+    let x_chars: Vec<char> = x.chars().collect();
+    let len_v = v_chars.len() + 1;
+    let len_w = w_chars.len() + 1;
+    let len_x = x_chars.len() + 1;
+    let mut s: Vec<Vec<Vec<i64>>> = vec![vec![vec![0; len_x]; len_w]; len_v];
+    let mut backtracking: Vec<Vec<Vec<usize>>> = vec![vec![vec![99; len_x]; len_w]; len_v];
+
+    for i in 0..len_v {
+        for j in 0..len_w {
+            for k in 0..len_x {
+                if i == 0 && j == 0 && k == 0 {
+                    continue;
+                }
+
+                let mut max_score = i64::MIN;
+                let mut max_code = 99usize;
+
+                if i > 0 && s[i - 1][j][k] > max_score {
+                    max_score = s[i - 1][j][k];
+                    max_code = 0;
+                }
+                if j > 0 && s[i][j - 1][k] > max_score {
+                    max_score = s[i][j - 1][k];
+                    max_code = 6;
+                }
+                if k > 0 && s[i][j][k - 1] > max_score {
+                    max_score = s[i][j][k - 1];
+                    max_code = 4;
+                }
+                if i > 0 && j > 0 {
+                    if s[i - 1][j - 1][k] > max_score {
+                        max_score = s[i - 1][j - 1][k];
+                        max_code = 3;
+                    }
+                }
+                if i > 0 && k > 0 {
+                    if s[i - 1][j][k - 1] > max_score {
+                        max_score = s[i - 1][j][k - 1];
+                        max_code = 1;
+                    }
+                }
+                if j > 0 && k > 0 {
+                    if s[i][j - 1][k - 1] > max_score {
+                        max_score = s[i][j - 1][k - 1];
+                        max_code = 5;
+                    }
+                }
+                if i > 0 && j > 0 && k > 0 {
+                    let matching = if v_chars[i - 1] == w_chars[j - 1] && w_chars[j - 1] == x_chars[k - 1] {
+                        1
+                    } else {
+                        0
+                    };
+                    let score = s[i - 1][j - 1][k - 1] + matching;
+                    if score > max_score {
+                        max_score = score;
+                        max_code = 2;
+                    } else if score == max_score && score == s[i - 1][j - 1][k - 1] + matching && max_code != 2 {
+                        max_code = 2;
+                    }
+                }
+
+                s[i][j][k] = max_score;
+                backtracking[i][j][k] = max_code;
+            }
+        }
+    }
+
+    let s1 = output_s1_lcs3(&backtracking, v, len_v - 1, len_w - 1, len_x - 1);
+    let s2 = output_s2_lcs3(&backtracking, w, len_v - 1, len_w - 1, len_x - 1);
+    let s3 = output_s3_lcs3(&backtracking, x, len_v - 1, len_w - 1, len_x - 1);
+    (s[len_v - 1][len_w - 1][len_x - 1], s1, s2, s3)
+}
+
+pub fn output_s1_lcs3(backtrack: &Vec<Vec<Vec<usize>>>, v:&String, i:usize, j:usize, k:usize) -> String {
+    let mut i1:i64 = i.clone() as i64;
+    let mut j1:i64 = j.clone() as i64;
+    let mut k1:i64 = k.clone() as i64;
+    let mut result: String = "".to_string();
+
+    while i1 > 0 || j1 > 0 {
+        if i1 == 0 && j1 > 0 && k1 == 0 {
+            // Only j1 > 0, so we're on the first row - all left moves
+            result = "-".to_string() + &result;
+            j1 = j1 - 1;
+        } else if j1 == 0 && i1 > 0 && k == 0 {
+            // Only i1 > 0, so we're on the first column - all up moves
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+        } else if k1 > 0 && j1 == 0 && i1 == 0 {
+            result = "-".to_string() + &result;
+            k1 = k1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 0 {
+            //result = "-".to_string() + &result;
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 1 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+            k1 = k1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 2 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+            j1 = j1 - 1;
+            k1 = k1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 3 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+            j1 = j1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 4 {
+            result = "-".to_string() + &result;
+            k1 = k1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 5 {
+            result = "-".to_string() + &result;
+            j1 = j1 - 1;
+            k1 = k1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 6 {
+            result = "-".to_string() + &result;
+            j1 = j1 - 1;
+        } else {
+            return backtrack[i1 as usize][j1 as usize][k1 as usize].to_string() + &result;
+        }
+    }
+    result
+}
+
+pub fn output_s2_lcs3(backtrack: &Vec<Vec<Vec<usize>>>, v:&String, i:usize, j:usize, k:usize) -> String {
+    let mut i1:i64 = i.clone() as i64;
+    let mut j1:i64 = j.clone() as i64;
+    let mut k1:i64 = k.clone() as i64;
+    let mut result: String = "".to_string();
+
+    while i1 > 0 || j1 > 0 {
+        if i1 == 0 && j1 > 0 && k1 == 0 {
+            // Only j1 > 0, so we're on the first row - all left moves
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            j1 = j1 - 1;
+        } else if j1 == 0 && i1 > 0 && k == 0 {
+            // Only i1 > 0, so we're on the first column - all up moves
+            result = "-".to_string() + &result;
+            i1 = i1 - 1;
+        } else if k1 > 0 && j1 == 0 && i1 == 0 {
+            result = "-".to_string() + &result;
+            k1 = k1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 0 {
+            result = "-".to_string() + &result;
+            i1 = i1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 1 {
+            result = "-".to_string() + &result;
+            i1 = i1 - 1;
+            k1 = k1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 2 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+            j1 = j1 - 1;
+            k1 = k1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 3 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+            j1 = j1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 4 {
+            result = "-".to_string() + &result;
+            k1 = k1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 5 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            j1 = j1 - 1;
+            k1 = k1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 6 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            j1 = j1 - 1;
+        } else {
+            return backtrack[i1 as usize][j1 as usize][k1 as usize].to_string() + &result;
+        }
+    }
+    result
+}
+
+pub fn output_s3_lcs3(backtrack: &Vec<Vec<Vec<usize>>>, v:&String, i:usize, j:usize, k:usize) -> String {
+    let mut i1:i64 = i.clone() as i64;
+    let mut j1:i64 = j.clone() as i64;
+    let mut k1:i64 = k.clone() as i64;
+    let mut result: String = "".to_string();
+
+    while i1 > 0 || j1 > 0 {
+        if i1 == 0 && j1 > 0 && k1 == 0 {
+            // Only j1 > 0, so we're on the first row - all left moves
+            result = "-".to_string() + &result;
+            j1 = j1 - 1;
+        } else if j1 == 0 && i1 > 0 && k == 0 {
+            // Only i1 > 0, so we're on the first column - all up moves
+            result = "-".to_string() + &result;
+            i1 = i1 - 1;
+        } else if k1 > 0 && j1 == 0 && i1 == 0 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            k1 = k1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 0 {
+            result = "-".to_string() + &result;
+            i1 = i1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 1 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+            k1 = k1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 2 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            i1 = i1 - 1;
+            j1 = j1 - 1;
+            k1 = k1 - 1;
+        } else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 3 {
+            result = "-".to_string() + &result;
+            i1 = i1 - 1;
+            j1 = j1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 4 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            k1 = k1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 5 {
+            result = v.chars().nth((i1-1) as usize).unwrap().to_string() + &result;
+            j1 = j1 - 1;
+            k1 = k1 - 1;
+        }
+        else if backtrack[i1 as usize][j1 as usize][k1 as usize] == 6 {
+            result = "-".to_string() + &result;
+            j1 = j1 - 1;
+        } else {
+            return backtrack[i1 as usize][j1 as usize][k1 as usize].to_string() + &result;
+        }
+    }
+    result
+}
